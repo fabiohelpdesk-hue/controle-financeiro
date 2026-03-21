@@ -3,214 +3,418 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FinanceFlow v2.2 | Private </title>
+    <title>FinanceFlow PRO | Controle Inteligente</title>
     
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <style>
         :root {
-            --bg-principal: #0F1117;
+            --bg-deep: #08090D;
             --bg-sidebar: #0B0D12;
-            --bg-cards: #161B27;
-            --bg-elements: #1E2535;
-            --verde: #00D68F;
-            --vermelho: #FF4757;
-            --texto: #F0F4FF;
-            --texto-dim: #8892A4;
-            --borda: rgba(255, 255, 255, 0.05);
-            --radius: 16px;
+            --bg-card: #12161F;
+            --bg-element: #1C222D;
+            
+            --emerald: #00D68F;
+            --emerald-glow: rgba(0, 214, 143, 0.15);
+            --danger: #FF4757;
+            --danger-glow: rgba(255, 71, 87, 0.15);
+            --blue: #4A90E2;
+            --gold: #FFB830;
+            
+            --text-main: #F4F7FB;
+            --text-dim: #94A3B8;
+            --border: rgba(255, 255, 255, 0.05);
+            
+            --radius-xl: 24px;
+            --radius-lg: 16px;
+            --radius-md: 12px;
+            
+            --sidebar-w: 260px;
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Nunito', sans-serif; }
-        body { background-color: var(--bg-principal); color: var(--texto); display: flex; min-height: 100vh; overflow: hidden; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Outfit', sans-serif; }
+        body { background-color: var(--bg-deep); color: var(--text-main); display: flex; height: 100vh; overflow: hidden; }
 
-        /* Login Screen - Ultra Visible Error */
-        .auth-overlay { position: fixed; inset: 0; background: var(--bg-principal); z-index: 5000; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(10px); }
-        .auth-card { background: var(--bg-cards); padding: 50px 40px; border-radius: 24px; border: 1px solid var(--borda); width: 420px; text-align: center; box-shadow: 0 40px 100px rgba(0,0,0,0.8); }
-        .auth-logo { margin-bottom: 24px; display: flex; align-items: center; justify-content: center; gap: 12px; font-weight: 800; font-size: 1.8rem; color: var(--verde); }
-        .auth-input { width: 100%; padding: 14px 16px; background: var(--bg-elements); border: 1px solid var(--borda); border-radius: 12px; color: white; margin-bottom: 16px; outline: none; font-size: 14px; }
-        .auth-input:focus { border-color: var(--verde); }
-        .auth-btn { width: 100%; padding: 16px; background: var(--verde); border: none; border-radius: 12px; color: var(--bg-principal); font-weight: 800; font-size: 16px; cursor: pointer; transition: 0.2s; }
-        .auth-btn:disabled { opacity: 0.5; filter: grayscale(1); cursor: wait; }
-        
-        /* O Erro agora é gigante e chamativo */
-        #auth-error-box { background: rgba(255, 71, 87, 0.15); border: 1px solid var(--vermelho); color: var(--vermelho); padding: 15px; border-radius: 12px; margin-top: 20px; font-size: 14px; font-weight: 700; display: none; text-align: left; }
+        /* Sidebar PRO */
+        .sidebar { width: var(--sidebar-w); background: var(--bg-sidebar); border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 32px 20px; }
+        .logo { display: flex; align-items: center; gap: 12px; font-weight: 800; font-size: 1.4rem; color: var(--emerald); margin-bottom: 48px; }
+        .nav-group { display: flex; flex-direction: column; gap: 8px; }
+        .nav-item { display: flex; align-items: center; gap: 14px; padding: 14px 16px; border-radius: var(--radius-md); color: var(--text-dim); text-decoration: none; font-weight: 600; cursor: pointer; transition: 0.2s; }
+        .nav-item:hover { background: var(--bg-element); color: var(--text-main); }
+        .nav-item.active { background: var(--emerald-glow); color: var(--emerald); border: 1px solid rgba(0, 214, 143, 0.2); }
 
-        .sidebar { width: 240px; background: var(--bg-sidebar); height: 100vh; position: fixed; border-right: 1px solid var(--borda); display: flex; flex-direction: column; padding: 24px; z-index: 1000; }
-        .main-wrapper { margin-left: 240px; flex: 1; padding: 40px; display: none; flex-direction: column; gap: 32px; width: calc(100% - 240px); overflow-y: auto; }
-        
-        .nav-item { display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 12px; color: var(--texto-dim); cursor: pointer; font-weight: 600; margin-bottom: 5px; }
-        .nav-item.active { background: rgba(0, 214, 143, 0.1); color: var(--verde); }
-        .card { background: var(--bg-cards); border-radius: var(--radius); padding: 24px; border: 1px solid var(--borda); }
-        .summary-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
-        .summary-value { font-size: 24px; font-weight: 800; margin-top: 8px; }
-        .transaction-item { display: flex; align-items: center; justify-content: space-between; padding: 16px; background: var(--bg-sidebar); border-radius: 12px; margin-bottom: 8px; }
-        
-        .spinner { width: 20px; height: 20px; border: 2px solid rgba(255,255,255,0.1); border-top-color: var(--verde); border-radius: 50%; animation: spin 0.8s linear infinite; display: none; margin: 10px auto; }
-        @keyframes spin { to { transform: rotate(360deg); } }
+        /* Main View Container */
+        .content { flex: 1; padding: 40px; overflow-y: auto; display: none; flex-direction: column; gap: 40px; }
+        .active-view { display: flex; }
+
+        /* Dashboard Components */
+        .header { display: flex; justify-content: space-between; align-items: flex-end; }
+        .welcome h1 { font-size: 2rem; font-weight: 800; }
+        .welcome p { color: var(--text-dim); }
+
+        .stat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+        .stat-card { background: var(--bg-card); padding: 28px; border-radius: var(--radius-lg); border: 1px solid var(--border); position: relative; overflow: hidden; }
+        .stat-label { font-size: 14px; color: var(--text-dim); font-weight: 600; }
+        .stat-value { font-size: 28px; font-weight: 800; margin-top: 10px; }
+        .stat-glow { position: absolute; top: -20px; right: -20px; width: 80px; height: 80px; border-radius: 50%; opacity: 0.1; filter: blur(30px); }
+
+        .dashboard-row { display: grid; grid-template-columns: 1.8fr 1fr; gap: 24px; }
+        .chart-box { background: var(--bg-card); padding: 24px; border-radius: var(--radius-lg); border: 1px solid var(--border); height: 360px; display: flex; flex-direction: column; }
+        .chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; font-weight: 700; color: var(--text-dim); }
+
+        /* Accounts Strip */
+        .accounts-strip { display: flex; gap: 16px; overflow-x: auto; padding-bottom: 10px; }
+        .acc-card { min-width: 200px; background: var(--bg-element); padding: 20px; border-radius: var(--radius-md); border-left: 4px solid var(--emerald); }
+        .acc-name { font-weight: 700; font-size: 13px; color: var(--text-dim); }
+        .acc-val { font-weight: 800; font-size: 18px; margin-top: 4px; }
+
+        /* List PRO */
+        .list-box { background: var(--bg-card); border-radius: var(--radius-lg); border: 1px solid var(--border); overflow: hidden; }
+        .list-header { padding: 20px 24px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; font-weight: 800; }
+        .transaction-row { display: flex; align-items: center; justify-content: space-between; padding: 18px 24px; border-bottom: 1px solid var(--border); transition: 0.2s; }
+        .transaction-row:hover { background: rgba(255,255,255,0.02); }
+        .cat-icon { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; background: var(--bg-element); color: var(--text-dim); }
+
+        /* Floating Buttons & Modals */
+        .fab { position: fixed; bottom: 40px; right: 40px; width: 64px; height: 64px; border-radius: 50%; background: var(--emerald); color: var(--bg-deep); display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 30px rgba(0, 214, 143, 0.4); cursor: pointer; transition: 0.2s; z-index: 1000; }
+        .fab:hover { transform: scale(1.1); }
+
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(8px); display: none; align-items: center; justify-content: center; z-index: 2000; }
+        .modal { background: var(--bg-card); width: 440px; border-radius: var(--radius-xl); padding: 32px; border: 1px solid var(--border); animation: slideIn 0.3s ease; }
+        @keyframes slideIn { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+        .pro-input { width: 100%; padding: 14px 18px; background: var(--bg-element); border: 1px solid var(--border); border-radius: var(--radius-md); color: white; margin-bottom: 16px; outline: none; }
+        .pro-input:focus { border-color: var(--emerald); }
+        .btn-full { width: 100%; padding: 16px; background: var(--emerald); color: var(--bg-deep); border: none; border-radius: var(--radius-md); font-weight: 800; cursor: pointer; }
+
+        /* Login Screen */
+        .auth-screen { position: fixed; inset: 0; background: var(--bg-deep); z-index: 9999; display: flex; align-items: center; justify-content: center; }
+        .auth-card { background: var(--bg-card); width: 400px; padding: 48px; border-radius: var(--radius-xl); border: 1px solid var(--border); text-align: center; }
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
+
         .hidden { display: none !important; }
-        .btn { padding: 12px 24px; border-radius: 12px; font-weight: 800; border: none; cursor: pointer; display: flex; align-items: center; gap: 8px; }
-        .btn-p { background: var(--verde); color: var(--bg-principal); }
-        .btn-s { background: var(--bg-elements); color: white; border: 1px solid var(--borda); }
     </style>
 </head>
 <body>
 
-    <div id="auth-section" class="auth-overlay">
+    <!-- AUTH OVERLAY -->
+    <div id="auth-overlay" class="auth-screen">
         <div class="auth-card">
-            <div class="auth-logo"><i data-lucide="shield-check"></i> FinanceFlow</div>
-            <p style="color:var(--texto-dim); margin-bottom:30px">Acesso Restrito - v2.2</p>
-            <form id="form-login">
-                <input type="email" id="email" class="auth-input" placeholder="Seu e-mail" required>
-                <input type="password" id="pass" class="auth-input" placeholder="Sua senha" required>
-                <div id="spinner" class="spinner"></div>
-                <button type="submit" class="auth-btn" id="btn-entrar">ENTRAR NO SISTEMA</button>
-                <div id="auth-error-box"></div>
+            <div class="logo" style="justify-content:center; font-size:1.8rem"><i data-lucide="wallet"></i> FinanceFlow</div>
+            <p style="color:var(--text-dim); margin-bottom:32px">Controle Financeiro de Elite</p>
+            <form id="login-form">
+                <input type="email" id="login-email" class="pro-input" placeholder="Seu e-mail" required>
+                <input type="password" id="login-pass" class="pro-input" placeholder="Sua senha" required>
+                <button type="submit" class="btn-full" id="btn-login">ACESSAR PAINEL</button>
+                <div id="login-error" style="color:var(--danger); font-size:13px; margin-top:20px; display:none"></div>
+                <div id="auth-loading" class="spinner" style="display:none; margin: 20px auto"></div>
             </form>
-            <p style="color:var(--texto-dim); font-size:10px; margin-top:30px; opacity:0.6">Seus dados estão protegidos por RLS no Supabase.</p>
+            <p style="font-size:10px; color:var(--text-dim); margin-top:40px; opacity:0.3">VERSÃO PRO 2.5 • PRIVATE ACCESS</p>
         </div>
     </div>
 
+    <!-- SIDEBAR -->
     <aside class="sidebar" id="app-sidebar" style="display:none">
-        <div class="auth-logo" style="justify-content:flex-start; font-size:1.2rem; margin-bottom:32px"><i data-lucide="wallet"></i> FinanceFlow</div>
-        <nav>
-            <a class="nav-item active"><i data-lucide="layout-dashboard"></i> Dashboard</a>
-            <a class="nav-item"><i data-lucide="arrow-left-right"></i> Transações</a>
-            <a class="nav-item"><i data-lucide="credit-card"></i> Cartões</a>
+        <div class="logo"><i data-lucide="wallet"></i> FinanceFlow</div>
+        <nav class="nav-group">
+            <div class="nav-item active" data-v="dash"><i data-lucide="layout-dashboard"></i> Dashboard</div>
+            <div class="nav-item" data-v="trans"><i data-lucide="arrow-left-right"></i> Transações</div>
+            <div class="nav-item" data-v="budget"><i data-lucide="target"></i> Orçamento</div>
+            <div class="nav-item" data-v="acc"><i data-lucide="landmark"></i> Contas</div>
         </nav>
         <div style="margin-top:auto">
-            <div id="user-email" style="font-size:11px; margin-bottom:10px; opacity:0.6"></div>
-            <button class="btn btn-s" id="btn-sair" style="width:100%"><i data-lucide="log-out"></i> SAIR</button>
+            <div id="u-info" style="font-size:11px; color:var(--text-dim); margin-bottom:12px; font-weight:600"></div>
+            <div class="nav-item" id="btn-logout" style="color:var(--danger); border: 1px solid transparent;"><i data-lucide="log-out"></i> Sair</div>
         </div>
     </aside>
 
-    <main class="main-wrapper" id="app-main">
-        <header style="display:flex; justify-content:space-between; align-items:center">
-            <div><h1>Dashboard</h1><p style="color:var(--texto-dim)">Seu capital sincronizado em nuvem.</p></div>
-            <button class="btn btn-p" id="btn-add"><i data-lucide="plus"></i> NOVO</button>
+    <!-- CONTENT VIEWS -->
+    <main class="content active-view" id="view-dash" style="display:none">
+        <header class="header">
+            <div class="welcome">
+                <p>Bom dia,</p>
+                <h1 id="welcome-user">Resumo Financeiro</h1>
+            </div>
+            <div class="accounts-strip" id="mini-accounts"></div>
         </header>
-        <section class="summary-cards">
-            <div class="card"><div>Receitas</div><div class="summary-value" id="tot-in" style="color:var(--verde)">R$ 0,00</div></div>
-            <div class="card"><div>Despesas</div><div class="summary-value" id="tot-out" style="color:var(--vermelho)">R$ 0,00</div></div>
-            <div class="card"><div>Saldo</div><div class="summary-value" id="tot-net">R$ 0,00</div></div>
+
+        <section class="stat-grid">
+            <div class="stat-card">
+                <div class="stat-glow" style="background:var(--emerald)"></div>
+                <div class="stat-label">RESUMO DE ENTRADAS</div>
+                <div class="stat-value" id="dash-in" style="color:var(--emerald)">R$ 0,00</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-glow" style="background:var(--danger)"></div>
+                <div class="stat-label">GASTOS DO MÊS</div>
+                <div class="stat-value" id="dash-out" style="color:var(--danger)">R$ 0,00</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-glow" style="background:var(--blue)"></div>
+                <div class="stat-label">SALDO LÍQUIDO</div>
+                <div class="stat-value" id="dash-net">R$ 0,00</div>
+            </div>
         </section>
-        <div class="card">
-            <h3>Transações na Nuvem</h3>
-            <div id="lista" style="margin-top:20px"></div>
+
+        <section class="dashboard-row">
+            <div class="chart-box">
+                <div class="chart-header">EVOLUÇÃO MENSAL</div>
+                <canvas id="mainChart"></canvas>
+            </div>
+            <div class="chart-box">
+                <div class="chart-header">GASTOS POR CATEGORIA</div>
+                <canvas id="catChart"></canvas>
+            </div>
+        </section>
+
+        <section class="list-box">
+            <div class="list-header">ÚLTIMAS MOVIMENTAÇÕES <div style="font-size:12px; color:var(--emerald); cursor:pointer">VER TUDO</div></div>
+            <div id="list-dash"></div>
+        </section>
+    </main>
+
+    <!-- PAGE: TRANSACTIONS -->
+    <main class="content" id="view-trans">
+        <h1>Minhas Transações</h1>
+        <div class="list-box" style="margin-top:24px">
+            <div id="list-full"></div>
         </div>
     </main>
 
+    <!-- FAB -->
+    <div class="fab" id="open-modal"><i data-lucide="plus" size="32"></i></div>
+
+    <!-- MODAL ADD -->
+    <div class="modal-overlay" id="modal-add">
+        <div class="modal">
+            <h2 style="margin-bottom:24px">Nova Transação</h2>
+            <form id="trans-form">
+                <input type="text" id="t-desc" class="pro-input" placeholder="Descrição" required>
+                <input type="number" step="0.01" id="t-val" class="pro-input" placeholder="Valor (R$)" required>
+                <select id="t-type" class="pro-input">
+                    <option value="despesa">Despesa</option>
+                    <option value="receita">Receita</option>
+                </select>
+                <select id="t-cat" class="pro-input">
+                    <option value="Mercado">Mercado</option>
+                    <option value="Lazer">Lazer</option>
+                    <option value="Transporte">Transporte</option>
+                    <option value="Aluguel">Aluguel</option>
+                    <option value="Saúde">Saúde</option>
+                    <option value="Salário">Salário</option>
+                    <option value="Outros">Outros</option>
+                </select>
+                <input type="date" id="t-date" class="pro-input">
+                <div style="display:flex; gap:12px; margin-top:10px">
+                    <button type="button" class="btn-full btn-s" id="close-modal" style="flex:1">CANCELAR</button>
+                    <button type="submit" class="btn-full" style="flex:2">SALVAR NA NUVEM</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script>
-        const URL_SB = 'https://totqludytvydgqiwygqe.supabase.co';
-        const KEY_SB = 'sb_publishable_8qkFVq7ZZyWRRLqtNLSdJg_-NlkJO9v';
+        const SB_URL = 'https://totqludytvydgqiwygqe.supabase.co';
+        const SB_KEY = 'sb_publishable_8qkFVq7ZZyWRRLqtNLSdJg_-NlkJO9v';
+        const sb = supabase.createClient(SB_URL, SB_KEY);
+
+        let mainChart = null;
+        let catChart = null;
+
+        const STATE = {
+            user: null,
+            transactions: [],
+            view: 'dash'
+        };
+
+        // UI HELPERS
+        const fmt = (v) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v);
         
-        if (typeof supabase === 'undefined') {
-            document.body.innerHTML = "<div style='padding:50px; text-align:center;'><h2>ERRO CRÍTICO</h2><p>Biblioteca Supabase não encontrada. Verifique sua conexão.</p></div>";
-        }
-
-        const sb = supabase.createClient(URL_SB, KEY_SB);
-
-        const UI = {
-            auth: document.getElementById('auth-section'),
-            main: document.getElementById('app-main'),
-            sidebar: document.getElementById('app-sidebar'),
-            error: document.getElementById('auth-error-box'),
-            spinner: document.getElementById('spinner'),
-            form: document.getElementById('form-login'),
-            btn: document.getElementById('btn-entrar')
+        const CAT_ICONS = {
+            'Mercado': 'shopping-cart',
+            'Lazer': 'heart',
+            'Transporte': 'bus',
+            'Aluguel': 'home',
+            'Saúde': 'activity',
+            'Salário': 'banknote',
+            'Outros': 'layers'
         };
 
-        async function verify() {
+        // INIT
+        window.onload = async () => {
+            lucide.createIcons();
             const { data: { session } } = await sb.auth.getSession();
-            updateUI(session?.user || null);
-        }
+            handleAuth(session?.user || null);
+            document.getElementById('t-date').valueAsDate = new Date();
+        };
 
-        function updateUI(user) {
+        // AUTH
+        async function handleAuth(user) {
+            STATE.user = user;
             if (user) {
-                UI.auth.classList.add('hidden');
-                UI.main.style.display = 'flex';
-                UI.sidebar.style.display = 'flex';
-                document.getElementById('user-email').innerText = user.email;
-                fetchData();
+                document.getElementById('auth-overlay').classList.add('hidden');
+                document.getElementById('app-sidebar').style.display = 'flex';
+                document.getElementById('view-dash').classList.add('active-view');
+                document.getElementById('u-info').innerText = user.email;
+                sync();
             } else {
-                UI.auth.classList.remove('hidden');
-                UI.main.style.display = 'none';
-                UI.sidebar.style.display = 'none';
+                document.getElementById('auth-overlay').classList.remove('hidden');
+                document.getElementById('app-sidebar').style.display = 'none';
+                document.querySelectorAll('.content').forEach(c => c.classList.remove('active-view'));
             }
             lucide.createIcons();
         }
 
-        UI.form.onsubmit = async (e) => {
+        document.getElementById('login-form').onsubmit = async (e) => {
             e.preventDefault();
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('pass').value;
+            const email = document.getElementById('login-email').value;
+            const pass = document.getElementById('login-pass').value;
+            const btn = document.getElementById('btn-login');
+            const err = document.getElementById('login-error');
 
-            UI.error.style.display = 'none';
-            UI.spinner.style.display = 'block';
-            UI.btn.disabled = true;
+            btn.disabled = true;
+            err.style.display = 'none';
 
-            try {
-                const { data, error } = await sb.auth.signInWithPassword({ email, password });
-                if (error) {
-                    console.error("Auth Fail:", error.message);
-                    UI.error.innerHTML = `<strong>Erro no Login:</strong><br>${error.message === 'Invalid login credentials' ? 'Dados incorretos. Verifique e-mail e senha.' : error.message}`;
-                    UI.error.style.display = 'block';
-                    if(error.message.includes("confirmed")) {
-                        UI.error.innerHTML += "<br><br><span style='font-size:11px'>DICA: Desative 'Confirm Email' nas configurações do Supabase.</span>";
-                    }
-                } else {
-                    updateUI(data.user);
-                }
-            } catch (err) {
-                UI.error.innerText = "Erro inesperado. Tente novamente.";
-                UI.error.style.display = 'block';
-            } finally {
-                UI.spinner.style.display = 'none';
-                UI.btn.disabled = false;
+            const { data, error } = await sb.auth.signInWithPassword({ email, password: pass });
+            if (error) {
+                err.innerText = "Falha no acesso: Verifique seus dados.";
+                err.style.display = 'block';
+                btn.disabled = false;
+            } else {
+                handleAuth(data.user);
             }
         };
 
-        document.getElementById('btn-sair').onclick = async () => {
+        document.getElementById('btn-logout').onclick = async () => {
             await sb.auth.signOut();
-            updateUI(null);
+            handleAuth(null);
         };
 
-        async function fetchData() {
-            const { data, error } = await sb.from('transactions').select('*').order('created_at', { ascending: false });
-            if (!error) {
-                const fmt = (v) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v);
-                const inc = data.filter(t => t.type === 'receita').reduce((s, x) => s + parseFloat(x.value), 0);
-                const exp = data.filter(t => t.type === 'despesa').reduce((s, x) => s + parseFloat(x.value), 0);
-                document.getElementById('tot-in').innerText = fmt(inc);
-                document.getElementById('tot-out').innerText = fmt(exp);
-                document.getElementById('tot-net').innerText = fmt(inc - exp);
+        // NAVIGATION
+        document.querySelectorAll('.nav-item[data-v]').forEach(item => {
+            item.onclick = () => {
+                document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+                item.classList.add('active');
                 
-                const list = document.getElementById('lista');
-                list.innerHTML = data.length ? '' : '<p style="opacity:0.5; text-align:center">Nenhuma transação encontrada.</p>';
-                data.forEach(t => {
-                    const div = document.createElement('div');
-                    div.className = 'transaction-item';
-                    div.innerHTML = `
-                        <div style="display:flex; gap:12px; align-items:center">
-                            <div class="badge ${t.type === 'receita' ? 'bg-v' : 'bg-d'}">${t.type.toUpperCase()}</div>
-                            <div><div>${t.description}</div><div style="font-size:11px; opacity:0.5">${t.category_id || 'Serviços'}</div></div>
-                        </div>
-                        <div style="font-weight:800; color:${t.type==='receita'?'var(--verde)':'var(--vermelho)'}">${fmt(t.value)}</div>
-                    `;
-                    list.appendChild(div);
-                });
+                document.querySelectorAll('.content').forEach(c => c.classList.remove('active-view'));
+                document.getElementById(`view-${item.dataset.v}`).classList.add('active-view');
                 lucide.createIcons();
+            };
+        });
+
+        // SYNC DATA
+        async function sync() {
+            const { data, error } = await sb.from('transactions').select('*').order('date', { ascending: false });
+            if (!error) {
+                STATE.transactions = data;
+                renderDash();
+                renderCharts();
             }
         }
 
-        window.onload = () => {
+        // RENDER DASH
+        function renderDash() {
+            const inc = STATE.transactions.filter(t => t.type === 'receita').reduce((s, x) => s + parseFloat(x.value), 0);
+            const exp = STATE.transactions.filter(t => t.type === 'despesa').reduce((s, x) => s + parseFloat(x.value), 0);
+
+            document.getElementById('dash-in').innerText = fmt(inc);
+            document.getElementById('dash-out').innerText = fmt(exp);
+            document.getElementById('dash-net').innerText = fmt(inc - exp);
+
+            const list = document.getElementById('list-dash');
+            list.innerHTML = STATE.transactions.length ? '' : '<p style="padding:40px; text-align:center; opacity:0.5">Sem movimentações recentes.</p>';
+            
+            STATE.transactions.slice(0, 8).forEach(t => {
+                const icon = CAT_ICONS[t.category_id] || 'layers';
+                const div = document.createElement('div');
+                div.className = 'transaction-row';
+                div.innerHTML = `
+                    <div style="display:flex; gap:16px; align-items:center">
+                        <div class="cat-icon"><i data-lucide="${icon}" size="20"></i></div>
+                        <div>
+                            <div style="font-weight:700">${t.description}</div>
+                            <div style="font-size:11px; color:var(--text-dim)">${new Date(t.date).toLocaleDateString()} • ${t.category_id}</div>
+                        </div>
+                    </div>
+                    <div style="font-weight:800; color:${t.type === 'receita' ? 'var(--emerald)' : 'var(--danger)'}">
+                        ${t.type === 'receita' ? '+' : '-'} ${fmt(t.value).replace('R$', '')}
+                    </div>
+                `;
+                list.appendChild(div);
+            });
             lucide.createIcons();
-            verify();
+        }
+
+        // CHARTS
+        function renderCharts() {
+            // Chart 1: Month Evolution
+            const ctx1 = document.getElementById('mainChart').getContext('2d');
+            if (mainChart) mainChart.destroy();
+            
+            mainChart = new Chart(ctx1, {
+                type: 'bar',
+                data: {
+                    labels: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun'],
+                    datasets: [
+                        { label: 'Receitas', data: [1200, 1900, 3000, 5000, 2300, 3400], backgroundColor: '#00D68F' },
+                        { label: 'Despesas', data: [800, 1400, 2100, 3200, 1500, 2100], backgroundColor: '#FF4757' }
+                    ]
+                },
+                options: { responsive: true, maintainAspectRatio: false, scales: { y: { display: false }, x: { grid: { display: false } } }, plugins: { legend: { display: false } } }
+            });
+
+            // Chart 2: Categories
+            const ctx2 = document.getElementById('catChart').getContext('2d');
+            if (catChart) catChart.destroy();
+            
+            const cats = {};
+            STATE.transactions.filter(t => t.type === 'despesa').forEach(t => {
+                cats[t.category_id] = (cats[t.category_id] || 0) + parseFloat(t.value);
+            });
+
+            catChart = new Chart(ctx2, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(cats),
+                    datasets: [{
+                        data: Object.values(cats),
+                        backgroundColor: ['#00D68F', '#FF4757', '#4A90E2', '#FFB830', '#A855F7'],
+                        borderWidth: 0
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, cutout: '75%', plugins: { legend: { display: false } } }
+            });
+        }
+
+        // MODAL & FORM
+        document.getElementById('open-modal').onclick = () => document.getElementById('modal-add').style.display = 'flex';
+        document.getElementById('close-modal').onclick = () => document.getElementById('modal-add').style.display = 'none';
+
+        document.getElementById('trans-form').onsubmit = async (e) => {
+            e.preventDefault();
+            const payload = {
+                user_id: STATE.user.id,
+                description: document.getElementById('t-desc').value,
+                value: parseFloat(document.getElementById('t-val').value),
+                type: document.getElementById('t-type').value,
+                category_id: document.getElementById('t-cat').value,
+                date: document.getElementById('t-date').value
+            };
+
+            const { error } = await sb.from('transactions').insert([payload]);
+            if (!error) {
+                document.getElementById('modal-add').style.display = 'none';
+                document.getElementById('trans-form').reset();
+                document.getElementById('t-date').valueAsDate = new Date();
+                sync();
+            } else {
+                alert("Erro ao salvar: " + error.message);
+            }
         };
     </script>
 </body>
