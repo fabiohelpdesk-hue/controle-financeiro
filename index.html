@@ -25,224 +25,216 @@
             --bg-sidebar: #0B0D12;
             --bg-cards: #161B27;
             --bg-elements: #1E2535;
-            
             --verde-receita: #00D68F;
             --vermelho-despesa: #FF4757;
             --azul-saldo: #4A90E2;
             --amarelo-alerta: #FFB830;
             --roxo-invest: #A855F7;
-            
             --texto-primario: #F0F4FF;
             --texto-secundario: #8892A4;
             --borda-sutil: rgba(255, 255, 255, 0.05);
-            
             --radius-card: 16px;
             --radius-element: 10px;
-            
             --sidebar-width: 240px;
-            --transition-speed: 0.3s;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Nunito', sans-serif; -webkit-font-smoothing: antialiased; }
+        body { background-color: var(--bg-principal); color: var(--texto-primario); display: flex; min-height: 100vh; overflow: hidden; }
 
-        body { background-color: var(--bg-principal); color: var(--texto-primario); display: flex; min-height: 100vh; overflow-x: hidden; }
-
-        /* Login Overlay */
-        .auth-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: radial-gradient(circle at top right, rgba(168, 85, 247, 0.1), transparent), var(--bg-principal); z-index: 5000; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(10px); transition: all 0.5s ease; }
+        /* Login Screen */
+        .auth-overlay { position: fixed; inset: 0; background: radial-gradient(circle at top right, rgba(168, 85, 247, 0.1), transparent), var(--bg-principal); z-index: 5000; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(10px); }
         .auth-card { background: var(--bg-cards); padding: 50px 40px; border-radius: 24px; border: 1px solid var(--borda-sutil); width: 420px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); text-align: center; }
-        .auth-logo { margin-bottom: 40px; display: flex; align-items: center; justify-content: center; gap: 12px; font-weight: 800; font-size: 1.8rem; text-transform: uppercase; color: var(--verde-receita); }
-        .auth-input { width: 100%; padding: 14px 16px; background: var(--bg-elements); border: 1px solid var(--borda-sutil); border-radius: 12px; color: white; margin-bottom: 20px; outline: none; transition: border-color 0.2s; font-size: 14px; }
+        .auth-logo { margin-bottom: 30px; display: flex; align-items: center; justify-content: center; gap: 12px; font-weight: 800; font-size: 1.8rem; color: var(--verde-receita); }
+        .auth-input { width: 100%; padding: 14px 16px; background: var(--bg-elements); border: 1px solid var(--borda-sutil); border-radius: 12px; color: white; margin-bottom: 20px; outline: none; }
         .auth-input:focus { border-color: var(--verde-receita); }
-        .auth-btn { width: 100%; padding: 15px; background: var(--verde-receita); border: none; border-radius: 12px; color: var(--bg-principal); font-weight: 800; font-size: 16px; cursor: pointer; transition: 0.2s; }
-        .auth-btn:hover:not(:disabled) { background: #00BF7F; transform: translateY(-2px); }
-        .auth-btn:disabled { opacity: 0.6; cursor: not-allowed; filter: grayscale(1); }
+        .auth-btn { width: 100%; padding: 15px; background: var(--verde-receita); border: none; border-radius: 12px; color: var(--bg-principal); font-weight: 800; cursor: pointer; }
+        .auth-btn:disabled { opacity: 0.5; cursor: not-allowed; }
         .auth-error { color: var(--vermelho-despesa); font-size: 13px; margin-top: 15px; display: none; padding: 10px; border-radius: 8px; background: rgba(255, 71, 87, 0.1); }
 
-        /* Sidebar */
-        .sidebar { width: var(--sidebar-width); background-color: var(--bg-sidebar); height: 100vh; position: fixed; left: 0; top: 0; border-right: 1px solid var(--borda-sutil); display: flex; flex-direction: column; padding: 24px 16px; z-index: 1000; }
-        .logo-container { display: flex; align-items: center; gap: 12px; padding: 0 8px 32px 8px; color: var(--texto-primario); font-weight: 800; font-size: 1.2rem; text-transform: uppercase; }
-        .nav-item { display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 12px; color: var(--texto-secundario); text-decoration: none; font-weight: 600; margin-bottom: 4px; transition: 0.2s; cursor: pointer; }
-        .nav-item:hover { background: var(--bg-elements); color: var(--texto-primario); }
-        .nav-item.active { background: rgba(0, 214, 143, 0.1); color: var(--verde-receita); }
-
-        /* Main Content */
+        /* Sidebar & Layout */
+        .sidebar { width: var(--sidebar-width); background: var(--bg-sidebar); height: 100vh; position: fixed; border-right: 1px solid var(--borda-sutil); display: flex; flex-direction: column; padding: 24px 16px; transition: 0.3s; }
         .main-wrapper { margin-left: var(--sidebar-width); flex: 1; padding: 40px; display: none; flex-direction: column; gap: 32px; width: calc(100% - var(--sidebar-width)); }
         
-        .summary-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+        .nav-item { display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 12px; color: var(--texto-secundario); font-weight: 600; cursor: pointer; transition: 0.2s; }
+        .nav-item.active { background: rgba(0, 214, 143, 0.1); color: var(--verde-receita); }
+        
         .card { background: var(--bg-cards); border-radius: var(--radius-card); padding: 24px; border: 1px solid var(--borda-sutil); }
+        .summary-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
         .summary-value { font-size: 24px; font-weight: 800; margin-top: 8px; }
 
-        .transaction-item { display: flex; align-items: center; justify-content: space-between; padding: 16px; background: var(--bg-sidebar); border-radius: 12px; margin-bottom: 8px; border: 1px solid transparent; }
+        .transaction-item { display: flex; align-items: center; justify-content: space-between; padding: 16px; background: var(--bg-sidebar); border-radius: 12px; margin-bottom: 8px; }
         .badge { padding: 4px 12px; border-radius: 20px; font-size: 10px; font-weight: 700; }
         .bg-v { background: rgba(0, 214, 143, 0.15); color: var(--verde-receita); }
         .bg-d { background: rgba(255, 71, 87, 0.15); color: var(--vermelho-despesa); }
 
-        .spinner { width: 30px; height: 30px; border: 3px solid rgba(255,255,255,0.1); border-top-color: var(--verde-receita); border-radius: 50%; animation: spin 1s linear infinite; display: none; margin: 0 auto 10px; }
+        .spinner { width: 24px; height: 24px; border: 3px solid rgba(255,255,255,0.1); border-top-color: var(--verde-receita); border-radius: 50%; animation: spin 1s linear infinite; display: none; margin: 10px auto; }
         @keyframes spin { to { transform: rotate(360deg); } }
-
+        
+        .hidden { display: none !important; }
         .btn { padding: 12px 24px; border-radius: 12px; font-weight: 800; border: none; cursor: pointer; display: flex; align-items: center; gap: 8px; }
         .btn-p { background: var(--verde-receita); color: var(--bg-principal); }
         .btn-s { background: var(--bg-elements); color: white; border: 1px solid var(--borda-sutil); }
-        .hidden { display: none !important; }
     </style>
 </head>
 <body>
 
-    <!-- AUTH SECTION (Apenas Login) -->
     <div id="auth-section" class="auth-overlay">
         <div class="auth-card">
             <div class="auth-logo"><i data-lucide="wallet"></i> FinanceFlow</div>
-            <p style="color:var(--texto-secundario); margin-bottom:30px; font-size:14px">Sistema Financeiro Privado</p>
-            <div id="auth-form">
-                <input type="email" id="auth-email" class="auth-input" placeholder="E-mail de acesso">
-                <input type="password" id="auth-password" class="auth-input" placeholder="Senha">
-                <div id="auth-loading-spinner" class="spinner"></div>
-                <button class="auth-btn" id="btn-auth-submit">Entrar no Sistema</button>
+            <p style="color:var(--texto-secundario); margin-bottom:30px; font-size:14px">Acesso Restrito</p>
+            <form id="login-form">
+                <input type="email" id="auth-email" class="auth-input" placeholder="E-mail" required>
+                <input type="password" id="auth-password" class="auth-input" placeholder="Senha" required>
+                <div id="auth-spinner" class="spinner"></div>
+                <button type="submit" class="auth-btn" id="btn-auth-submit">Entrar no Sistema</button>
                 <div id="auth-error" class="auth-error"></div>
-            </div>
-            <p style="color:var(--texto-secundario); font-size:11px; margin-top:30px; opacity:0.5">Acesso restrito a usuários autorizados.</p>
+            </form>
         </div>
     </div>
 
-    <!-- MAIN APP STRUCTURE -->
     <aside class="sidebar" id="app-sidebar" style="display:none">
         <div class="logo-container"><i data-lucide="wallet" style="color:var(--verde-receita)"></i> FinanceFlow</div>
         <nav>
-            <a class="nav-item active" data-view="dashboard"><i data-lucide="layout-dashboard"></i> Dashboard</a>
-            <a class="nav-item" data-view="transactions"><i data-lucide="arrow-left-right"></i> Transações</a>
-            <a class="nav-item" data-view="budget"><i data-lucide="target"></i> Orçamento</a>
-            <a class="nav-item" data-view="accounts"><i data-lucide="landmark"></i> Contas</a>
+            <a class="nav-item active"><i data-lucide="layout-dashboard"></i> Dashboard</a>
+            <a class="nav-item"><i data-lucide="arrow-left-right"></i> Transações</a>
+            <a class="nav-item"><i data-lucide="landmark"></i> Contas</a>
         </nav>
-        <div style="margin-top:auto; padding-top:20px; border-top:1px solid var(--borda-sutil)">
-            <div id="user-display" style="font-size:12px; margin-bottom:10px; color:var(--texto-secundario)">Usuário</div>
+        <div style="margin-top:auto">
+            <div id="user-display" style="font-size:11px; margin-bottom:10px; opacity:0.6"></div>
             <button class="btn btn-s" id="btn-logout" style="width:100%"><i data-lucide="log-out"></i> Sair</button>
         </div>
     </aside>
 
     <main class="main-wrapper" id="app-main">
         <header style="display:flex; justify-content:space-between; align-items:center">
-            <div><h1 id="view-title">Visão Geral</h1><p id="view-subtitle" style="color:var(--texto-secundario)">Painel de Controle</p></div>
+            <div><h1>Visão Geral</h1><p style="color:var(--texto-secundario)">Controle Financeiro Cloud</p></div>
             <button class="btn btn-p" id="btn-new"><i data-lucide="plus"></i> Nova Transação</button>
         </header>
 
-        <section id="view-dashboard" class="app-view">
-            <div class="summary-cards">
-                <div class="card"><div style="color:var(--texto-secundario); font-size:12px">Total Receitas</div><div class="summary-value" id="val-in" style="color:var(--verde-receita)">R$ 0,00</div></div>
-                <div class="card"><div style="color:var(--texto-secundario); font-size:12px">Total Despesas</div><div class="summary-value" id="val-out" style="color:var(--vermelho-despesa)">R$ 0,00</div></div>
-                <div class="card"><div style="color:var(--texto-secundario); font-size:12px">Saldo Atual</div><div class="summary-value" id="val-net">R$ 0,00</div></div>
-            </div>
-            <div class="card" style="margin-top:32px">
-                <h3 style="margin-bottom:20px; font-size:16px">Sincronização Cloud Recente</h3>
-                <div id="list-recent"></div>
-            </div>
+        <section class="summary-cards">
+            <div class="card"><div>Receitas</div><div class="summary-value" id="val-in" style="color:var(--verde-receita)">R$ 0,00</div></div>
+            <div class="card"><div>Despesas</div><div class="summary-value" id="val-out" style="color:var(--vermelho-despesa)">R$ 0,00</div></div>
+            <div class="card"><div>Saldo</div><div class="summary-value" id="val-net">R$ 0,00</div></div>
         </section>
+
+        <div class="card">
+            <h3 style="margin-bottom:20px">Transações Recentes</h3>
+            <div id="list-recent"></div>
+        </div>
     </main>
 
     <script>
-        const URL = 'https://totqludytvydgqiwygqe.supabase.co';
-        const KEY = 'sb_publishable_8qkFVq7ZZyWRRLqtNLSdJg_-NlkJO9v';
-        const _v = supabase.createClient(URL, KEY);
-
-        const UI = {
-            auth: document.getElementById('auth-section'),
-            main: document.getElementById('app-main'),
-            sidebar: document.getElementById('app-sidebar'),
-            error: document.getElementById('auth-error'),
-            spinner: document.getElementById('auth-loading-spinner'),
-            submit: document.getElementById('btn-auth-submit')
-        };
-
-        // AUTH LOGIC
-        async function checkSession() {
-            const { data: { session } } = await _v.auth.getSession();
-            handleAuthChange(session?.user || null);
-        }
-
-        function handleAuthChange(user) {
-            if (user) {
-                UI.auth.classList.add('hidden');
-                UI.main.style.display = 'flex';
-                UI.sidebar.style.display = 'flex';
-                document.getElementById('user-display').innerText = user.email;
-                loadData();
-            } else {
-                UI.auth.classList.remove('hidden');
-                UI.main.style.display = 'none';
-                UI.sidebar.style.display = 'none';
+        document.addEventListener('DOMContentLoaded', () => {
+            const URL = 'https://totqludytvydgqiwygqe.supabase.co';
+            const KEY = 'sb_publishable_8qkFVq7ZZyWRRLqtNLSdJg_-NlkJO9v';
+            
+            // Garantir que a biblioteca Supabase está presente
+            if (typeof supabase === 'undefined') {
+                alert('Erro crítico: Biblioteca Supabase não carregada. Verifique sua conexão.');
+                return;
             }
-            lucide.createIcons();
-        }
 
-        UI.submit.onclick = async () => {
-            const email = document.getElementById('auth-email').value;
-            const pass = document.getElementById('auth-password').value;
-            
-            if (!email || !pass) return;
+            const _v = supabase.createClient(URL, KEY);
 
-            UI.error.style.display = 'none';
-            UI.spinner.style.display = 'block';
-            UI.submit.disabled = true;
-            
-            try {
-                const { data, error } = await _v.auth.signInWithPassword({ email, password: pass });
-                
-                if (error) {
-                    UI.error.innerText = (error.message === 'Invalid login credentials') ? 'Dados de acesso incorretos.' : error.message;
-                    UI.error.style.display = 'block';
+            const UI = {
+                auth: document.getElementById('auth-section'),
+                main: document.getElementById('app-main'),
+                sidebar: document.getElementById('app-sidebar'),
+                error: document.getElementById('auth-error'),
+                spinner: document.getElementById('auth-spinner'),
+                submit: document.getElementById('btn-auth-submit'),
+                form: document.getElementById('login-form')
+            };
+
+            async function checkSession() {
+                const { data: { session } } = await _v.auth.getSession();
+                handleAuthChange(session?.user || null);
+            }
+
+            function handleAuthChange(user) {
+                if (user) {
+                    UI.auth.classList.add('hidden');
+                    UI.main.style.display = 'flex';
+                    UI.sidebar.style.display = 'flex';
+                    document.getElementById('user-display').innerText = user.email;
+                    loadData();
                 } else {
-                    handleAuthChange(data.user);
+                    UI.auth.classList.remove('hidden');
+                    UI.main.style.display = 'none';
+                    UI.sidebar.style.display = 'none';
                 }
-            } catch (err) {
-                UI.error.innerText = "Erro de conexão. Verifique sua internet.";
-                UI.error.style.display = 'block';
-            } finally {
-                UI.spinner.style.display = 'none';
-                UI.submit.disabled = false;
+                lucide.createIcons();
             }
-        };
 
-        document.getElementById('btn-logout').onclick = async () => {
-            await _v.auth.signOut();
-            handleAuthChange(null);
-        };
+            // Evento de Login corrigido com submit de formulário
+            UI.form.onsubmit = async (e) => {
+                e.preventDefault();
+                const email = document.getElementById('auth-email').value;
+                const pass = document.getElementById('auth-password').value;
 
-        async function loadData() {
-            const { data, error } = await _v.from('transactions').select('*').order('created_at', { ascending: false });
-            if (!error) {
-                render(data);
+                UI.error.style.display = 'none';
+                UI.spinner.style.display = 'block';
+                UI.submit.disabled = true;
+
+                try {
+                    console.log("Tentando login para:", email);
+                    const { data, error } = await _v.auth.signInWithPassword({ email, password: pass });
+                    
+                    if (error) {
+                        console.error("Erro Supabase:", error.message);
+                        UI.error.innerText = (error.message === 'Invalid login credentials') ? 'E-mail ou senha incorretos.' : error.message;
+                        UI.error.style.display = 'block';
+                    } else {
+                        handleAuthChange(data.user);
+                    }
+                } catch (err) {
+                    console.error("Erro Fatal:", err);
+                    UI.error.innerText = "Erro ao conectar com o servidor.";
+                    UI.error.style.display = 'block';
+                } finally {
+                    UI.spinner.style.display = 'none';
+                    UI.submit.disabled = false;
+                }
+            };
+
+            document.getElementById('btn-logout').onclick = async () => {
+                await _v.auth.signOut();
+                handleAuthChange(null);
+            };
+
+            async function loadData() {
+                const { data, error } = await _v.from('transactions').select('*').order('created_at', { ascending: false });
+                if (!error) render(data);
             }
-        }
 
-        function render(data) {
-            const fmt = (v) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v);
-            const inc = data.filter(t => t.type === 'receita').reduce((s, x) => s + parseFloat(x.value), 0);
-            const exp = data.filter(t => t.type === 'despesa').reduce((s, x) => s + parseFloat(x.value), 0);
+            function render(data) {
+                const fmt = (v) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v);
+                const inc = data.filter(t => t.type === 'receita').reduce((s, x) => s + parseFloat(x.value), 0);
+                const exp = data.filter(t => t.type === 'despesa').reduce((s, x) => s + parseFloat(x.value), 0);
+                document.getElementById('val-in').innerText = fmt(inc);
+                document.getElementById('val-out').innerText = fmt(exp);
+                document.getElementById('val-net').innerText = fmt(inc - exp);
 
-            document.getElementById('val-in').innerText = fmt(inc);
-            document.getElementById('val-out').innerText = fmt(exp);
-            document.getElementById('val-net').innerText = fmt(inc - exp);
+                const list = document.getElementById('list-recent');
+                list.innerHTML = data.length ? '' : '<p style="text-align:center; opacity:0.5">Nenhum dado encontrado.</p>';
+                data.slice(0, 10).forEach(t => {
+                    const div = document.createElement('div');
+                    div.className = 'transaction-item';
+                    div.innerHTML = `
+                        <div style="display:flex; gap:12px; align-items:center">
+                            <div class="badge ${t.type === 'receita' ? 'bg-v' : 'bg-d'}">${t.type.toUpperCase()}</div>
+                            <div><div style="font-weight:700">${t.description}</div><div style="font-size:11px; opacity:0.6">${t.category_id || 'Geral'}</div></div>
+                        </div>
+                        <div style="font-weight:800; color:${t.type==='receita'?'var(--verde-receita)':'var(--vermelho-despesa)'}">${fmt(t.value)}</div>
+                    `;
+                    list.appendChild(div);
+                });
+                lucide.createIcons();
+            }
 
-            const list = document.getElementById('list-recent');
-            list.innerHTML = data.length ? '' : '<p style="color:var(--texto-secundario); padding: 20px; text-align:center">Nenhum dado na nuvem.</p>';
-            data.slice(0, 10).forEach(t => {
-                const div = document.createElement('div');
-                div.className = 'transaction-item';
-                div.innerHTML = `
-                    <div style="display:flex; gap:12px; align-items:center">
-                        <div class="badge ${t.type === 'receita' ? 'bg-v' : 'bg-d'}">${t.type.toUpperCase()}</div>
-                        <div><div style="font-weight:700">${t.description}</div><div style="font-size:11px; opacity:0.6">${t.category_id || 'Finance'}</div></div>
-                    </div>
-                    <div style="font-weight:800; color:${t.type === 'receita' ? 'var(--verde-receita)' : 'var(--vermelho-despesa)'}">${fmt(t.value)}</div>
-                `;
-                list.appendChild(div);
-            });
-            lucide.createIcons();
-        }
-
-        window.onload = () => {
             lucide.createIcons();
             checkSession();
-        };
+        });
     </script>
 </body>
 </html>
