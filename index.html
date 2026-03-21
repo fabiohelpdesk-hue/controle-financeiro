@@ -1,256 +1,590 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FinanceFlow Pro v1.0 | Elite Edition</title>
-    
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-    
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FinanceFlow Pro v1.0 | Elite Edition</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#0A0D14;--bg2:#111520;--bg3:#181E2E;--bg4:#1F2740;--bg5:#252D42;
+  --green:#00D68F;--green2:#00F0A0;--red:#FF4757;--blue:#4A90E2;
+  --yellow:#FFB830;--purple:#A855F7;--orange:#FF8C42;--teal:#00BCD4;
+  --text:#EDF2FF;--text2:#7B88A0;--text3:#4A5568;
+  --border:rgba(255,255,255,0.06);--border2:rgba(255,255,255,0.1);
+  --card-r:16px;--sm-r:10px;
+  --shadow:0 4px 24px rgba(0,0,0,0.4);
+}
+html,body{min-height:100vh;background:var(--bg);color:var(--text);font-family:'Nunito',sans-serif;}
+::-webkit-scrollbar{width:5px;height:5px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--bg5);border-radius:10px;}
 
-    <style>
-        :root {
-            --bg: #0A0D14; --bg2: #111520; --bg3: #181E2E; --bg4: #1F2740; --bg5: #252D42;
-            --green: #00D68F; --green2: #00F0A0; --red: #FF4757; --blue: #4A90E2;
-            --yellow: #FFB830; --purple: #A855F7; --orange: #FF8C42; --teal: #00BCD4;
-            --text: #EDF2FF; --text2: #7B88A0; --text3: #4A5568;
-            --border: rgba(255,255,255,0.06); --border2: rgba(255,255,255,0.1);
-            --card-r: 16px; --sm-r: 10px;
-            --shadow: 0 4px 24px rgba(0,0,0,0.4);
-        }
+/* ── AUTH ── */
+.auth-overlay{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:9000;}
+.auth-card{background:var(--bg2);width:100%;max-width:400px;padding:40px;border-radius:20px;border:1px solid var(--border);text-align:center;}
+.auth-logo{width:60px;height:60px;background:var(--green);border-radius:18px;display:flex;align-items:center;justify-content:center;font-size:30px;margin:0 auto 24px;}
+.auth-input{width:100%;padding:14px;background:var(--bg3);border:1px solid var(--border2);border-radius:12px;color:var(--text);margin-bottom:16px;outline:none;transition:0.2s;}
+.auth-input:focus{border-color:var(--green);}
+.auth-btn{width:100%;padding:14px;background:var(--green);color:#0A0D14;border:none;border-radius:12px;font-weight:800;cursor:pointer;transition:0.2s;}
+.auth-btn:hover{background:var(--green2);transform:translateY(-2px);}
+.auth-error{background:rgba(255,71,87,0.1);color:var(--red);padding:12px;border-radius:10px;font-size:12px;margin-bottom:16px;display:none;}
 
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Nunito', sans-serif; -webkit-font-smoothing: antialiased; }
-        body { background-color: var(--bg); color: var(--text); display: flex; height: 100vh; overflow: hidden; }
+/* ── LAYOUT ── */
+.app{display:none;min-height:100vh; animation: fadeInApp 0.5s ease;}
+@keyframes fadeInApp { from{opacity:0;} to{opacity:1;} }
+.sidebar{width:248px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:22px 14px;position:fixed;height:100vh;z-index:20;overflow-y:auto;flex-shrink:0;transition:width .25s;}
+.main{margin-left:248px;flex:1;padding:28px;background:var(--bg);min-height:100vh;}
 
-        /* Sidebar Deluxe */
-        .sidebar { width: 248px; background: var(--bg2); border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 22px 14px; height: 100vh; z-index: 1000; flex-shrink: 0; transition: width 0.25s; }
-        .logo { display: flex; align-items: center; gap: 10px; padding: 0 8px 24px; border-bottom: 1px solid var(--border); margin-bottom: 6px; }
-        .logo-icon { width: 38px; height: 38px; background: var(--green); border-radius: 11px; display: flex; align-items: center; justify-content: center; font-size: 19px; flex-shrink: 0; }
-        .logo-text { font-size: 18px; font-weight: 900; letter-spacing: -0.3px; }
-        .logo-text span { color: var(--green); }
-        .nav-sec { font-size: 10px; font-weight: 800; color: var(--text3); text-transform: uppercase; letter-spacing: 1.2px; padding: 0 10px; margin: 16px 0 5px; }
-        .ni { display: flex; align-items: center; gap: 9px; padding: 10px 12px; border-radius: var(--sm-r); cursor: pointer; font-size: 13px; font-weight: 600; color: var(--text2); transition: 0.18s; margin-bottom: 2px; position: relative; }
-        .ni:hover { background: var(--bg3); color: var(--text); }
-        .ni.active { background: rgba(0, 214, 143, 0.13); color: var(--green); }
-        .ni-badge { position: absolute; right: 12px; background: var(--red); color: #fff; font-size: 10px; font-weight: 800; padding: 2px 7px; border-radius: 20px; }
+/* ── SIDEBAR ── */
+.logo{display:flex;align-items:center;gap:10px;padding:0 8px 24px;border-bottom:1px solid var(--border);margin-bottom:6px;}
+.logo-icon{width:38px;height:38px;background:var(--green);border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0;}
+.logo-text{font-size:18px;font-weight:900;letter-spacing:-.3px;}
+.logo-text span{color:var(--green);}
+.logo-sub{font-size:10px;color:var(--text3);font-weight:600;letter-spacing:.5px;}
+.nav-sec{font-size:10px;font-weight:800;color:var(--text3);text-transform:uppercase;letter-spacing:1.2px;padding:0 10px;margin:16px 0 5px;}
+.ni{display:flex;align-items:center;gap:9px;padding:10px 12px;border-radius:var(--sm-r);cursor:pointer;font-size:13px;font-weight:600;color:var(--text2);transition:all .18s;margin-bottom:2px;position:relative;}
+.ni:hover{background:var(--bg3);color:var(--text);}
+.ni.active{background:rgba(0,214,143,0.13);color:var(--green);}
+.ni .ic{font-size:16px;width:20px;text-align:center;flex-shrink:0;}
+.ni-badge{margin-left:auto;background:var(--red);color:#fff;font-size:10px;font-weight:800;padding:2px 7px;border-radius:20px;min-width:20px;text-align:center;}
+.sidebar-footer{margin-top:auto;padding-top:16px;border-top:1px solid var(--border);}
+.user-row{display:flex;align-items:center;gap:10px;padding:10px 10px;border-radius:var(--sm-r);cursor:pointer;}
+.user-row:hover{background:var(--bg3);}
+.avatar{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--blue),var(--purple));display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;flex-shrink:0;}
+.user-name{font-size:11px;font-weight:700; width:130px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.user-plan{font-size:9px;color:var(--green);font-weight:600;}
 
-        /* Main Context */
-        .main-wrapper { flex: 1; min-height: 100vh; overflow-y: auto; background: var(--bg); padding: 28px; }
-        .page { display: none; animation: fadeIn 0.2s ease; }
-        .page.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+/* ── PAGES ── */
+.page{display:none;animation:fadeIn .2s ease;}
+.page.active{display:block;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
 
-        /* Cards & Grids */
-        .sg { display: grid; gap: 12px; margin-bottom: 18px; grid-template-columns: repeat(4, 1fr); }
-        .sc { background: var(--bg2); border-radius: 14px; padding: 18px; border: 1px solid var(--border); position: relative; overflow: hidden; }
-        .sc-val { font-size: 22px; font-weight: 900; margin-bottom: 5px; letter-spacing: -0.5px; }
-        .sc.g { border-left: 4px solid var(--green); } .sc.r { border-left: 4px solid var(--red); }
-        
-        /* Premium Layouts */
-        .g2 { display: grid; grid-template-columns: 3fr 2fr; gap: 14px; margin-bottom: 16px; }
-        .card { background: var(--bg2); border-radius: var(--card-r); padding: 20px; border: 1px solid var(--border); }
-        .row { display: flex; align-items: center; justify-content: space-between; padding: 11px 0; border-bottom: 1px solid rgba(255,255,255,0.04); }
-        
-        /* Buttons */
-        .btn { padding: 9px 18px; border-radius: var(--sm-r); font-size: 12px; font-weight: 700; cursor: pointer; border: none; display: inline-flex; align-items: center; gap: 6px; }
-        .btn-p { background: var(--green); color: #0A0D14; }
-        .btn-g { background: var(--bg3); color: var(--text2); }
+/* ── PAGE HEADER ── */
+.ph{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:22px;gap:12px;flex-wrap:wrap;}
+.pt{font-size:22px;font-weight:900;letter-spacing:-.3px;}
+.ps{font-size:12px;color:var(--text2);margin-top:3px;}
+.ha{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
 
-        /* Modals */
-        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); display: none; align-items: center; justify-content: center; z-index: 5000; }
-        .modal { background: var(--bg2); width: 480px; padding: 28px; border-radius: 20px; border: 1px solid var(--border2); }
-        .input-pro { width: 100%; padding: 11px 14px; background: var(--bg3); border: 1px solid var(--border2); border-radius: 10px; color: var(--text); outline: none; margin-bottom: 15px; }
+/* ── BUTTONS ── */
+.btn{padding:9px 18px;border-radius:var(--sm-r);font-size:12px;font-weight:700;cursor:pointer;border:none;font-family:'Nunito',sans-serif;transition:all .18s;display:inline-flex;align-items:center;gap:6px;}
+.btn-p{background:var(--green);color:#0A0D14;}.btn-p:hover{background:var(--green2);transform:translateY(-1px);}
+.btn-g{background:var(--bg3);color:var(--text2);border:1px solid var(--border2);}.btn-g:hover{background:var(--bg4);color:var(--text);}
+.btn-r{background:rgba(255,71,87,0.12);color:var(--red);border:1px solid rgba(255,71,87,0.2);}
+.btn-b{background:rgba(74,144,226,0.12);color:var(--blue);border:1px solid rgba(74,144,226,0.2);}
+.btn-sm{padding:6px 12px;font-size:11px;border-radius:8px;}
+.icon-btn{width:30px;height:30px;border-radius:8px;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:13px;transition:all .15s;font-family:'Nunito',sans-serif;}
+.ib-edit{background:rgba(74,144,226,0.1);color:var(--blue);}.ib-edit:hover{background:rgba(74,144,226,0.22);}
+.ib-del{background:rgba(255,71,87,0.1);color:var(--red);}.ib-del:hover{background:rgba(255,71,87,0.22);}
+.ib-pay{background:rgba(0,214,143,1);color:#0A0D14; font-weight:900;}
 
-        /* Login */
-        .auth-screen { position: fixed; inset: 0; background: var(--bg); display: flex; align-items: center; justify-content: center; z-index: 9999; }
-        .auth-card { background: var(--bg2); width: 400px; padding: 50px; border-radius: 20px; border: 1px solid var(--border); text-align: center; }
+/* ── MONTH NAV ── */
+.month-nav{display:flex;align-items:center;gap:6px;background:var(--bg3);border-radius:var(--sm-r);padding:4px 6px;border:1px solid var(--border2);}
+.mn-btn{background:none;border:none;color:var(--text2);width:26px;height:26px;border-radius:7px;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;transition:all .15s;}
+.mn-btn:hover{background:var(--bg4);color:var(--text);}
+.mn-label{font-size:12px;font-weight:700;min-width:90px;text-align:center;color:var(--text);}
 
-        .hidden { display: none !important; }
-    </style>
+/* ── CARDS ── */
+.card{background:var(--bg2);border-radius:var(--card-r);padding:20px;border:1px solid var(--border);}
+.card-t{font-size:13px;font-weight:700;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;color:var(--text);}
+.see-all{font-size:11px;color:var(--green);cursor:pointer;font-weight:600;}
+
+/* ── STAT CARDS ── */
+.sg{display:grid;gap:12px;margin-bottom:18px;}
+.sg-4{grid-template-columns:repeat(4,1fr);}
+.sg-3{grid-template-columns:repeat(3,1fr);}
+.sg-2{grid-template-columns:1fr 1fr;}
+.sc{background:var(--bg2);border-radius:14px;padding:18px;border:1px solid var(--border);position:relative;overflow:hidden;}
+.sc-lbl{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:var(--text3);margin-bottom:10px;}
+.sc-val{font-size:22px;font-weight:900;margin-bottom:5px;letter-spacing:-.5px;}
+.sc-val.g{color:var(--green);}.sc-val.r{color:var(--red);}.sc-val.b{color:var(--blue);}.sc-val.y{color:var(--yellow);}.sc-val.p{color:var(--purple);}
+.sc-sub{font-size:11px;color:var(--text2);line-height:1.4;}
+.sc-ico{position:absolute;top:16px;right:16px;font-size:20px;opacity:.55;}
+
+/* ── GRIDS ── */
+.g2{display:grid;grid-template-columns:3fr 2fr;gap:14px;margin-bottom:16px;}
+.g2e{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px;}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:16px;}
+
+/* ── ROWS ── */
+.row{display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid rgba(255,255,255,0.04);}
+.row:last-child{border-bottom:none;}
+.row-ico{width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;}
+.row-info{flex:1;min-width:0;}
+.row-name{font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.row-meta{font-size:11px;color:var(--text2);margin-top:2px;display:flex;align-items:center;gap:5px;flex-wrap:wrap;}
+.row-val{font-size:13px;font-weight:700;flex-shrink:0;}
+.rv-g{color:var(--green);}.rv-r{color:var(--red);}.rv-b{color:var(--blue);}
+
+/* ── BADGES ── */
+.badge{padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700;white-space:nowrap;display:inline-flex;align-items:center;gap:3px;}
+.bg{background:rgba(0,214,143,0.12);color:var(--green);}
+.br{background:rgba(255,71,87,0.12);color:var(--red);}
+.by{background:rgba(255,184,48,0.12);color:var(--yellow);}
+.bb{background:rgba(74,144,226,0.12);color:var(--blue);}
+
+/* ── PROGRESS ── */
+.prog{height:7px;background:var(--bg5);border-radius:20px;overflow:hidden;}
+.prog-fill{height:100%;border-radius:20px;transition:width .7s ease;}
+
+/* ── ALERTS ── */
+.alert{border-radius:12px;padding:14px 16px;margin-bottom:10px;display:flex;gap:12px;align-items:flex-start;}
+.alert.danger{background:rgba(255,71,87,0.08);border:1px solid rgba(255,71,87,0.2);}
+.alert.warn{background:rgba(255,184,48,0.08);border:1px solid rgba(255,184,48,0.2);}
+.alert.ok{background:rgba(0,214,143,0.08);border:1px solid rgba(0,214,143,0.2);}
+.alert-ico{font-size:20px;flex-shrink:0;margin-top:1px;}
+.alert-title{font-size:13px;font-weight:700;}
+.alert-sub{font-size:11px;color:var(--text2);margin-top:3px;line-height:1.5;}
+
+/* ── EXPENSE ROWS ── */
+.exp-row{display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:11px;margin-bottom:6px;background:var(--bg3);transition:background .15s;}
+.exp-row.paid-row{opacity:.6;}
+.chk{width:22px;height:22px;border-radius:6px;border:2px solid rgba(255,255,255,0.15);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;transition:all .18s;}
+.chk.paid{background:var(--green);border-color:var(--green);color:#0A0D14;}
+.exp-ico{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;}
+.exp-info{flex:1;min-width:0;}
+.exp-name{font-size:13px;font-weight:700;}
+.exp-meta{font-size:11px;color:var(--text2);margin-top:2px;display:flex;align-items:center;gap:5px;}
+.exp-val{font-size:14px;font-weight:800;flex-shrink:0;}
+
+/* ── BANK CARDS ── */
+.bank-card{border-radius:14px;padding:20px;margin-bottom:12px;border:1px solid var(--border2);position:relative;}
+.bank-card-balance{font-size:26px;font-weight:900;letter-spacing:-.5px;}
+
+/* ── CREDIT CARDS ── */
+.cc{border-radius:16px;padding:22px;margin-bottom:10px;position:relative;overflow:hidden;min-height:165px;display:flex;flex-direction:column;justify-content:space-between;}
+.cc-chip{width:30px;height:22px;border-radius:5px;background:rgba(255,255,255,0.25);margin-bottom:18px;}
+.cc-num{font-size:14px;font-weight:700;letter-spacing:3px;opacity:.88;}
+
+/* ── MODAL ── */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:200;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(5px);}
+.modal-overlay.open{display:flex;}
+.modal{background:var(--bg2);border-radius:20px;padding:28px;width:480px;max-width:100%;border:1px solid var(--border2);max-height:90vh;overflow-y:auto;}
+.modal-h{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px;}
+.modal-title{font-size:17px;font-weight:900;}
+.fg{margin-bottom:15px;}
+.fl-lbl{font-size:10px;font-weight:800;color:var(--text2);text-transform:uppercase;margin-bottom:6px;display:block;}
+.fi{width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:10px;padding:11px 14px;color:var(--text);font-size:13px;outline:none;}
+.fi:focus{border-color:var(--green);}
+.fi-lg{font-size:20px;font-weight:800;}
+.fi-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.type-sel{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px;}
+.tb{padding:10px;border-radius:10px;border:2px solid transparent;cursor:pointer;text-align:center;font-size:12px;font-weight:700;background:var(--bg3);color:var(--text2);}
+.tb.sel-t{border-color:var(--blue);background:rgba(74,144,226,0.1);color:var(--blue);}
+.recur-opts{display:flex;gap:6px;}
+.ro{padding:6px 14px;border-radius:20px;border:1px solid var(--border2);background:var(--bg3);color:var(--text2);font-size:11px;font-weight:700;cursor:pointer;}
+.ro.sel{background:rgba(168,85,247,0.12);color:var(--purple);border-color:rgba(168,85,247,0.3);}
+.color-opts{display:flex;gap:8px;flex-wrap:wrap;}
+.co{width:30px;height:30px;border-radius:50%;cursor:pointer;border:3px solid transparent;}
+.co.sel{border-color:#fff;transform:scale(1.1);}
+
+@media(max-width:800px){.sidebar{width:58px;padding:14px 8px;}.sidebar .logo-text,.sidebar .logo-sub,.sidebar .nav-sec,.sidebar .ni span:not(.ic),.sidebar .ni-badge,.sidebar .user-name,.sidebar .user-plan{display:none;}.main{margin-left:58px;padding:16px;}.sg-4{grid-template-columns:1fr 1fr;}}
+</style>
 </head>
 <body>
 
-    <!-- AUTHENTICATION -->
-    <div id="auth-screen" class="auth-screen">
+    <!-- AUTH SECTION -->
+    <div id="auth-section" class="auth-overlay">
         <div class="auth-card">
-            <div class="logo-icon" style="margin:0 auto 24px">💰</div>
-            <h1 style="font-weight:900; font-size:1.6rem">FinanceFlow <span style="color:var(--green)">Pro</span></h1>
-            <p style="color:var(--text2); margin-bottom:40px">Acesse sua Inteligência Financeira</p>
-            <form id="auth-form">
-                <input type="email" id="auth-email" class="input-pro" placeholder="E-mail" required>
-                <input type="password" id="auth-pass" class="input-pro" placeholder="Senha" required>
-                <button type="submit" class="btn btn-p" style="width:100%; padding:14px; font-size:14px">ENTRAR NO SISTEMA</button>
-                <div id="auth-error" style="color:var(--red); font-size:12px; margin-top:20px; display:none; padding:12px; background:rgba(255,71,87,0.1); border-radius:10px"></div>
-            </form>
+            <div class="auth-logo">💰</div>
+            <h1 style="font-weight:900; margin-bottom:8px">FinanceFlow Pro</h1>
+            <p style="color:var(--text3); font-size:12px; margin-bottom:32px">Controle Financeiro de Elite</p>
+            <div id="auth-error" class="auth-error"></div>
+            <input type="email" id="auth-email" class="auth-input" placeholder="E-mail">
+            <input type="password" id="auth-pass" class="auth-input" placeholder="Senha">
+            <button id="auth-btn" class="auth-btn">ENTRAR NO SISTEMA</button>
         </div>
     </div>
 
-    <div class="app" id="app-content" style="display:none">
-        
-        <!-- SIDEBAR -->
-        <aside class="sidebar">
-            <div class="logo">
-                <div class="logo-icon">💰</div>
-                <div class="logo-text">Finance<span>Flow</span></div>
-            </div>
-            <nav>
-                <div class="nav-sec">Principal</div>
-                <div class="ni active" onclick="nav('dashboard')"><span>📊 Dashboard</span></div>
-                <div class="ni" onclick="nav('despesas')"><span>📋 Despesas</span><span class="ni-badge" id="badge-venc">0</span></div>
-                <div class="ni" onclick="nav('entradas')"><span>💚 Entradas</span></div>
-                <div class="nav-sec">Finanças</div>
-                <div class="ni" onclick="nav('contas')"><span>🏦 Contas</span></div>
-                <div class="ni" onclick="nav('cartoes')"><span>💳 Cartões</span></div>
-                <div class="nav-sec">Análise</div>
-                <div class="ni" onclick="nav('relatorio')"><span>📈 Relatório</span></div>
-            </nav>
-            <div style="margin-top:auto; padding-top:16px; border-top:1px solid var(--border)">
-                <div style="font-size:11px; text-align:center; color:var(--text3); margin-bottom:12px" id="user-display"></div>
-                <div class="ni" id="logout-btn" style="color:var(--red)"><span>🚪 Sair</span></div>
-            </div>
-        </aside>
+<div class="app" id="app-content">
 
-        <!-- MAIN -->
-        <main class="main-wrapper">
-            
-            <!-- DASHBOARD -->
-            <div class="page active" id="page-dashboard">
-                <div style="display:flex; justify-content:space-between; margin-bottom:24px">
-                    <div><h1 style="font-size:22px; font-weight:900">Dashboard</h1><p style="color:var(--text2); font-size:12px">Visão geral do mês</p></div>
-                    <button class="btn btn-p" onclick="openModal('expense')">＋ Lançar</button>
-                </div>
-                
-                <div class="sg">
-                    <div class="sc g"><div style="font-size:10px; font-weight:800; color:var(--text3)">ENTRADAS</div><div class="sc-val" id="d-in" style="color:var(--green)">R$ 0,00</div></div>
-                    <div class="sc r"><div style="font-size:10px; font-weight:800; color:var(--text3)">DESPESAS</div><div class="sc-val" id="d-out" style="color:var(--red)">R$ 0,00</div></div>
-                    <div class="sc b"><div style="font-size:10px; font-weight:800; color:var(--text3)">SALDO CONTAS</div><div class="sc-val" id="d-total" style="color:var(--blue)">R$ 0,00</div></div>
-                    <div class="sc p"><div style="font-size:10px; font-weight:800; color:var(--text3)">RESULTADO</div><div class="sc-val" id="d-res">R$ 0,00</div></div>
-                </div>
-
-                <div class="g2">
-                    <div class="card">
-                        <div style="font-weight:800; margin-bottom:16px">🔴 A PAGAR</div>
-                        <div id="d-apagar"></div>
-                    </div>
-                    <div class="card">
-                        <div style="font-weight:800; margin-bottom:16px">🏦 SALDO POR CONTA</div>
-                        <div id="d-contas"></div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- OTHER PAGES (Dynamic load) -->
-            <div class="page" id="page-despesas"><h1 style="font-weight:900">Despesas & Contas</h1><div id="exp-list" style="margin-top:20px"></div></div>
-            <div class="page" id="page-entradas"><h1 style="font-weight:900">Entradas</h1><div id="inc-list" style="margin-top:20px"></div></div>
-            <div class="page" id="page-contas"><h1 style="font-weight:900">Contas Bancárias</h1><div id="acc-list" style="margin-top:20px"></div></div>
-            <div class="page" id="page-cartoes"><h1 style="font-weight:900">Cartões de Crédito</h1><div id="crd-list" style="margin-top:20px"></div></div>
-            <div class="page" id="page-relatorio"><h1 style="font-weight:900">Relatórios</h1><div id="report-content" style="margin-top:20px"></div></div>
-
-        </main>
+<!-- ══ SIDEBAR ══ -->
+<aside class="sidebar">
+  <div class="logo">
+    <div class="logo-icon">💰</div>
+    <div><div class="logo-text">Finance<span>Flow</span></div><div class="logo-sub">Pro Edition</div></div>
+  </div>
+  <nav>
+    <div class="nav-sec">Principal</div>
+    <div class="ni active" onclick="nav('dashboard')"><span class="ic">📊</span><span>Dashboard</span></div>
+    <div class="ni" onclick="nav('despesas')"><span class="ic">📋</span><span>Despesas</span><span class="ni-badge" id="badge-venc" style="display:none">0</span></div>
+    <div class="ni" onclick="nav('entradas')"><span class="ic">💚</span><span>Entradas</span></div>
+    <div class="nav-sec">Finanças</div>
+    <div class="ni" onclick="nav('contas')"><span class="ic">🏦</span><span>Contas & Saldos</span></div>
+    <div class="ni" onclick="nav('cartoes')"><span class="ic">💳</span><span>Cartões</span></div>
+    <div class="nav-sec">Análise</div>
+    <div class="ni" onclick="nav('relatorio')"><span class="ic">📈</span><span>Relatório</span></div>
+    <div class="ni" onclick="nav('calendario')"><span class="ic">📅</span><span>Calendário</span></div>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="user-row" id="logout-btn">
+      <div class="avatar" id="user-avatar">?</div>
+      <div><div class="user-name" id="user-name">Usuário Pro</div><div class="user-plan">✦ Pro Plan</div></div>
     </div>
+  </div>
+</aside>
 
-    <script>
-        const SB_URL = 'https://totqludytvydgqiwygqe.supabase.co';
-        const SB_KEY = 'sb_publishable_8qkFVq7ZZyWRRLqtNLSdJg_-NlkJO9v';
-        const sb = supabase.createClient(SB_URL, SB_KEY);
+<!-- ══ MAIN ══ -->
+<main class="main">
 
-        const S = { 
-            user: null, 
-            month: new Date().getMonth(), year: new Date().getFullYear(),
-            accounts: [], cards: [], transactions: []
-        };
+<!-- ── DASHBOARD ── -->
+<div class="page active" id="page-dashboard">
+  <div class="ph">
+    <div><div class="pt">Painel Financeiro</div><div class="ps" id="dash-subtitle">Visão geral completa</div></div>
+    <div class="ha">
+      <div class="month-nav">
+        <button class="mn-btn" onclick="changeMonth(-1)">‹</button>
+        <div class="mn-label" id="ml-dash"></div>
+        <button class="mn-btn" onclick="changeMonth(1)">›</button>
+      </div>
+      <button class="btn btn-p" onclick="openModal('expense')">＋ Lançar</button>
+    </div>
+  </div>
+  <div class="sg sg-4" id="d-stats"></div>
+  <div class="g2">
+    <div>
+      <div class="card" style="margin-bottom:14px">
+        <div class="card-t">🔴 A Pagar este mês <span class="see-all" onclick="nav('despesas')">Ver todas →</span></div>
+        <div id="d-apagar"></div>
+      </div>
+      <div class="card">
+        <div class="card-t">💚 Entradas <span class="see-all" onclick="nav('entradas')">Ver todas →</span></div>
+        <div id="d-entradas"></div>
+      </div>
+    </div>
+    <div>
+      <div class="card" style="margin-bottom:14px">
+        <div class="card-t">🏦 Saldo por Conta <span class="see-all" onclick="nav('contas')">Detalhar →</span></div>
+        <div id="d-contas"></div>
+      </div>
+      <div id="d-alertas"></div>
+    </div>
+  </div>
+  <div class="g2e">
+    <div class="card">
+      <div class="card-t">Fluxo — últimos 6 meses</div>
+      <div class="chart-wrap"><canvas id="chart-flow" height="210"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-t">Gastos por Categoria</div>
+      <div style="position:relative;height:200px;display:flex;align-items:center;gap:14px">
+        <div style="position:relative;width:130px;height:130px;flex-shrink:0">
+          <canvas id="chart-donut"></canvas>
+          <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center">
+            <div style="font-size:14px;font-weight:800;" id="donut-center-val">R$0</div>
+            <div style="font-size:9px;color:var(--text3);font-weight:700">TOTAL</div>
+          </div>
+        </div>
+        <div style="flex:1;font-size:11px;" id="donut-legend"></div>
+      </div>
+    </div>
+  </div>
+</div>
 
-        const fmt = v => 'R$ ' + parseFloat(v||0).toLocaleString('pt-BR', {minimumFractionDigits:2});
+<!-- ── OUTRAS PÁGINAS ── -->
+<div class="page" id="page-despesas"><div class="ph"><div><div class="pt">Despesas & Contas</div><div class="ps">Tudo que você tem a pagar</div></div><div class="ha"><div class="month-nav"><button class="mn-btn" onclick="changeMonth(-1)">‹</button><div class="mn-label" id="ml-desp"></div><button class="mn-btn" onclick="changeMonth(1)">›</button></div><button class="btn btn-p" onclick="openModal('expense')">＋ Nova Despesa</button></div></div><div class="sg sg-4" id="exp-stats"></div><div class="tpbox" id="tpbox"></div><div id="exp-list"></div></div>
+<div class="page" id="page-entradas"><div class="ph"><div><div class="pt">Entradas</div><div class="ps">Salários e receitas</div></div><button class="btn btn-p" onclick="openModal('income')">＋ Nova Entrada</button></div><div class="sg sg-3" id="inc-stats"></div><div id="inc-list"></div></div>
+<div class="page" id="page-contas"><div class="ph"><div><div class="pt">Contas & Saldos</div><div class="ps">Saldo em bancos</div></div><button class="btn btn-p" onclick="openModal('account')">＋ Nova Conta</button></div><div id="acc-list"></div></div>
+<div class="page" id="page-cartoes"><div class="ph"><div><div class="pt">Cartões de Crédito</div><div class="ps">Limites e faturas</div></div><button class="btn btn-p" onclick="openModal('card')">＋ Novo Cartão</button></div><div id="cards-list"></div></div>
+<div class="page" id="page-relatorio"><div class="ph"><div><div class="pt">Relatório Mensal</div><div class="ps" id="rel-subtitle">Análise</div></div><div class="month-nav"><button class="mn-btn" onclick="changeMonth(-1)">‹</button><div class="mn-label" id="ml-rel"></div><button class="mn-btn" onclick="changeMonth(1)">›</button></div></div><div id="relatorio"></div></div>
+<div class="page" id="page-calendario"><div class="ph"><div><div class="pt">Calendário</div><div class="ps">Vencimentos</div></div><div class="month-nav"><button class="mn-btn" onclick="changeMonth(-1)">‹</button><div class="mn-label" id="ml-cal"></div><button class="mn-btn" onclick="changeMonth(1)">›</button></div></div><div id="calendario"></div></div>
 
-        window.onload = async () => {
-            const { data: { session } } = await sb.auth.getSession();
-            handleAuth(session?.user || null);
-        };
+</main>
+</div>
 
-        async function handleAuth(user) {
-            S.user = user;
-            if (user) {
-                document.getElementById('auth-screen').classList.add('hidden');
-                document.getElementById('app-content').style.display = 'flex';
-                document.getElementById('user-display').innerText = user.email;
-                sync();
-            } else {
-                document.getElementById('auth-screen').classList.remove('hidden');
-                document.getElementById('app-content').style.display = 'none';
-            }
-        }
+<!-- ══ MODAL ══ -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <div class="modal-h"><div class="modal-title" id="modal-title">Novo Lançamento</div><button style="background:none; border:none; color:var(--text2); cursor:pointer;" onclick="closeModal()">✕</button></div>
+    <div id="modal-body"></div>
+  </div>
+</div>
 
-        document.getElementById('auth-form').onsubmit = async (e) => {
-            e.preventDefault();
-            const email = document.getElementById('auth-email').value;
-            const password = document.getElementById('auth-pass').value;
-            const { data, error } = await sb.auth.signInWithPassword({ email, password });
-            if (error) { 
-                const err = document.getElementById('auth-error');
-                err.innerText = "Acesso Negado: Verifique os dados."; err.style.display = 'block';
-            } else { handleAuth(data.user); }
-        };
+<script>
+/* ══════════════════════════════════════════
+   SUPABASE CONFIG
+══════════════════════════════════════════ */
+const SB_URL = 'https://totqludytvydgqiwygqe.supabase.co';
+const SB_KEY = 'sb_publishable_8qkFVq7ZZyWRRLqtNLSdJg_-NlkJO9v';
+const sb = supabase.createClient(SB_URL, SB_KEY);
 
-        async function sync() {
-            const [accs, crds, trans] = await Promise.all([
-                sb.from('accounts').select('*'),
-                sb.from('cards').select('*'),
-                sb.from('transactions').select('*')
-            ]);
-            S.accounts = accs.data || [];
-            S.cards = crds.data || [];
-            S.transactions = trans.data || [];
-            renderDash();
-        }
+/* ══════════════════════════════════════════
+   CONSTANTES & STATE
+══════════════════════════════════════════ */
+const MONTHS=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+const MONTHS_S=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+const CATS=[{n:'Alimentação',e:'🍽'},{n:'Transporte',e:'🚗'},{n:'Saúde',e:'💊'},{n:'Lazer',e:'🎮'},{n:'Moradia',e:'🏠'},{n:'Educação',e:'📚'},{n:'Escola',e:'🎓'},{n:'Roupas',e:'👕'},{n:'Assinaturas',e:'📱'},{n:'Viagem',e:'✈️'},{n:'Pet',e:'🐾'},{n:'Outros',e:'📦'}];
+const INC_CATS=['Salário','Freelance','Investimento','Outros'];
+const COLORS=['#7B61FF','#00D68F','#FF4757','#4A90E2','#FFB830','#A855F7','#FF8C42','#00BCD4'];
+const CAT_COLORS={Alimentação:'#FF6B6B',Transporte:'#4ECDC4',Saúde:'#45B7D1',Lazer:'#A855F7',Moradia:'#F7B731',Educação:'#26de81',Escola:'#26de81',Roupas:'#FD9644',Assinaturas:'#2BCBBA',Viagem:'#45AAF2',Pet:'#FC5C65',Outros:'#8892A4'};
 
-        function renderDash() {
-            const exps = S.transactions.filter(t => t.type === 'despesa');
-            const incs = S.transactions.filter(t => t.type === 'receita');
-            
-            const sumEx = exps.reduce((s, x) => s + parseFloat(x.value), 0);
-            const sumIn = incs.reduce((s, x) => s + parseFloat(x.value), 0);
-            const balance = S.accounts.reduce((s, x) => s + parseFloat(x.balance), 0);
+let curMonth=new Date().getMonth();
+let curYear=new Date().getFullYear();
+let flowChart=null,donutChart=null;
 
-            document.getElementById('d-in').innerText = fmt(sumIn);
-            document.getElementById('d-out').innerText = fmt(sumEx);
-            document.getElementById('d-total').innerText = fmt(balance);
-            document.getElementById('d-res').innerText = fmt(sumIn - sumEx);
-            document.getElementById('d-res').style.color = (sumIn - sumEx) >= 0 ? 'var(--green)' : 'var(--red)';
+const S = {
+    user: null, accounts: [], cards: [], expenses: [], incomes: []
+};
 
-            // Overdue List
-            const overdue = exps.filter(e => !e.paid).slice(0, 5);
-            document.getElementById('d-apagar').innerHTML = overdue.length ? overdue.map(e => `
-                <div class="row">
-                    <div><div style="font-weight:700">${e.description}</div><div style="font-size:10px; color:var(--text3)">Vence em ${e.day||'--'}</div></div>
-                    <div style="color:var(--red); font-weight:800">${fmt(e.value)}</div>
-                </div>
-            `).join('') : '<p style="font-size:12px; opacity:0.3; padding:20px; text-align:center">Tudo pago!</p>';
+/* ══════════════════════════════════════════
+   CORE LOGIC (AUTH & SYNC)
+══════════════════════════════════════════ */
+window.onload = async () => {
+    const { data: { session } } = await sb.auth.getSession();
+    handleAuth(session?.user || null);
+};
 
-            // Accounts List
-            document.getElementById('d-contas').innerHTML = S.accounts.map(a => `
-                <div class="row">
-                    <div style="font-weight:700">${a.name}</div>
-                    <div style="color:var(--green); font-weight:800">${fmt(a.balance)}</div>
-                </div>
-            `).join('');
-        }
+async function handleAuth(user) {
+    S.user = user;
+    const authSect = document.getElementById('auth-section');
+    const appContent = document.getElementById('app-content');
+    
+    if (user) {
+        authSect.style.display = 'none';
+        appContent.style.display = 'block';
+        document.getElementById('user-name').innerText = user.email.split('@')[0];
+        document.getElementById('user-avatar').innerText = user.email[0].toUpperCase();
+        await sync();
+    } else {
+        authSect.style.display = 'flex';
+        appContent.style.display = 'none';
+    }
+}
 
-        function nav(page) {
-            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-            document.querySelectorAll('.ni').forEach(n => n.classList.remove('active'));
-            document.getElementById(`page-${page}`).classList.add('active');
-            event.currentTarget.classList.add('active');
-        }
+document.getElementById('auth-btn').onclick = async () => {
+    const email = document.getElementById('auth-email').value;
+    const password = document.getElementById('auth-pass').value;
+    const { data, error } = await sb.auth.signInWithPassword({ email, password });
+    if (error) {
+        const err = document.getElementById('auth-error');
+        err.innerText = "Falha no Login: Verifique e-mail/senha.";
+        err.style.display = 'block';
+    } else {
+        handleAuth(data.user);
+    }
+};
 
-        document.getElementById('logout-btn').onclick = async () => {
-            await sb.auth.signOut();
-            handleAuth(null);
-        };
-    </script>
+document.getElementById('logout-btn').onclick = async () => {
+    await sb.auth.signOut();
+    handleAuth(null);
+};
+
+async function sync() {
+    const [accs, crds, trans] = await Promise.all([
+        sb.from('accounts').select('*'),
+        sb.from('cards').select('*'),
+        sb.from('transactions').select('*')
+    ]);
+    S.accounts = accs.data || [];
+    S.cards = crds.data || [];
+    const allTrans = trans.data || [];
+    S.expenses = allTrans.filter(t => t.type === 'despesa').map(t => ({...t, dueDay: t.day, recur: t.recurrence || 'none'}));
+    S.incomes = allTrans.filter(t => t.type === 'receita');
+    
+    updateLabels();
+    const active = document.querySelector('.page.active');
+    if (active) nav(active.id.replace('page-',''));
+}
+
+/* ══════════════════════════════════════════
+   UTILS
+══════════════════════════════════════════ */
+function fmt(v){return'R$ '+parseFloat(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2});}
+function fmtShort(v){const n=parseFloat(v||0); if(n>=1000) return 'R$'+(n/1000).toFixed(1)+'k'; return 'R$'+n.toFixed(0);}
+function catEmoji(cat){const c=CATS.find(x=>x.n===cat);return c?c.e:'📦';}
+function accName(id){const a=S.accounts.find(x=>x.id===id);return a?a.name:'—';}
+function cardName(id){const c=S.cards.find(x=>x.id===id);return c?c.name:'—';}
+function isOverdue(e){ if(e.paid) return false; const d=new Date(e.year,e.month,e.dueDay); return d < new Date(new Date().toDateString()); }
+function monthExps(m,y){return S.expenses.filter(e=>e.month===m&&e.year===y);}
+function monthIncs(m,y){return S.incomes.filter(i=>{try{const d=new Date(i.date);return d.getUTCMonth()===m&&d.getUTCFullYear()===y;}catch(e){return false;}});}
+function totalInc(m,y){return monthIncs(m,y).reduce((s,i)=>s+parseFloat(i.value||0),0);}
+function totalExp(m,y){return monthExps(m,y).reduce((s,e)=>s+parseFloat(e.value||0),0);}
+function totalPaid(m,y){return monthExps(m,y).filter(e=>e.paid).reduce((s,e)=>s+parseFloat(e.value||0),0);}
+function totalOpen(m,y){return monthExps(m,y).filter(e=>!e.paid).reduce((s,e)=>s+parseFloat(e.value||0),0);}
+function totalSaldo(){return S.accounts.reduce((s,a)=>s+parseFloat(a.balance||0),0);}
+
+/* ══════════════════════════════════════════
+   NAVIGATION
+══════════════════════════════════════════ */
+function nav(page){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.ni').forEach(n=>n.classList.remove('active'));
+  document.getElementById('page-'+page).classList.add('active');
+  document.querySelectorAll('.ni').forEach(n=>{
+    if(n.getAttribute('onclick')&&n.getAttribute('onclick').includes("'"+page+"'"))n.classList.add('active');
+  });
+  const rs={dashboard:renderDashboard,despesas:renderDespesas,entradas:renderEntradas,contas:renderContas,cartoes:renderCartoes,relatorio:renderRelatorio,calendario:renderCalendario};
+  if(rs[page]) rs[page]();
+}
+
+function changeMonth(d){
+  curMonth+=d; if(curMonth>11){curMonth=0;curYear++;} if(curMonth<0){curMonth=11;curYear--;}
+  updateLabels(); nav(document.querySelector('.page.active').id.replace('page-',''));
+}
+
+function updateLabels(){
+  const lbl=MONTHS_S[curMonth]+' '+curYear;
+  ['dash','desp','rel','cal'].forEach(id=>{ const el=document.getElementById('ml-'+id); if(el) el.textContent=lbl; });
+}
+
+/* ══════════════════════════════════════════
+   RENDERS (Dashboard, Listas, etc)
+══════════════════════════════════════════ */
+function renderDashboard(){
+  const inc=totalInc(curMonth,curYear); const exp=totalExp(curMonth,curYear);
+  const paid=totalPaid(curMonth,curYear); const open=totalOpen(curMonth,curYear);
+  const saldo=totalSaldo(); const res=inc-exp;
+  const ov=monthExps(curMonth,curYear).filter(e=>isOverdue(e));
+
+  document.getElementById('d-stats').innerHTML=`
+    <div class="sc g"><div class="sc-ico">💚</div><div class="sc-lbl">Entradas</div><div class="sc-val g">${fmt(inc)}</div></div>
+    <div class="sc r"><div class="sc-ico">🔴</div><div class="sc-lbl">Despesas</div><div class="sc-val r">${fmt(exp)}</div></div>
+    <div class="sc b"><div class="sc-ico">🏦</div><div class="sc-lbl">Saldo Total</div><div class="sc-val b">${fmt(saldo)}</div></div>
+    <div class="sc ${res>=0?'g':'r'}"><div class="sc-ico">📊</div><div class="sc-lbl">Resultado</div><div class="sc-val ${res>=0?'g':'r'}">${fmt(res)}</div></div>`;
+
+  const expsOpen=monthExps(curMonth,curYear).filter(e=>!e.paid).sort((a,b)=>a.dueDay-b.dueDay).slice(0,5);
+  document.getElementById('d-apagar').innerHTML=expsOpen.length ? expsOpen.map(e=>`
+    <div class="row"><div class="row-ico" style="background:${isOverdue(e)?'rgba(255,71,87,0.1)':'rgba(255,184,48,0.08)'}">${catEmoji(e.cat)}</div>
+    <div class="row-info"><div class="row-name">${e.description||e.desc}</div><div class="row-meta"><span class="badge ${isOverdue(e)?'br':'by'}">${isOverdue(e)?'Vencida':'Vence dia '+e.dueDay}</span></div></div>
+    <div class="row-val rv-r">${fmt(e.value)}</div></div>`).join('') : '<div class="section-empty">✅ Tudo pago!</div>';
+
+  document.getElementById('d-contas').innerHTML=S.accounts.map(a=>`<div class="row"><div class="row-info"><div class="row-name">${a.name}</div></div><div class="row-val" style="color:var(--green)">${fmt(a.balance)}</div></div>`).join('');
+  
+  let alertHtml='';
+  if(ov.length>0) alertHtml=`<div class="alert danger"><div class="alert-ico">🚨</div><div><div class="alert-title">${ov.length} vencida(s)!</div><div class="alert-sub">Total: ${fmt(ov.reduce((s,e)=>s+parseFloat(e.value),0))}</div></div></div>`;
+  else if(saldo < open) alertHtml=`<div class="alert danger"><div class="alert-ico">⚠️</div><div><div class="alert-title">Saldo Insuficiente</div><div class="alert-sub">Falta ${fmt(open-saldo)} para o mês.</div></div></div>`;
+  else alertHtml=`<div class="alert ok"><div class="alert-ico">✅</div><div><div class="alert-title">Saúde OK</div><div class="alert-sub">Sobra ${fmt(saldo-open)} após pagar tudo.</div></div></div>`;
+  document.getElementById('d-alertas').innerHTML=alertHtml;
+
+  renderFlowChart(); renderDonutChart();
+}
+
+function renderFlowChart(){
+  const months=[]; const incData=[]; const expData=[];
+  for(let i=5;i>=0;i--){
+    let m=curMonth-i, y=curYear; if(m<0){m+=12;y--;}
+    months.push(MONTH_S[m]); incData.push(totalInc(m,y)); expData.push(totalExp(m,y));
+  }
+  const ctx=document.getElementById('chart-flow');
+  if(flowChart) flowChart.destroy();
+  flowChart=new Chart(ctx,{type:'bar',data:{labels:months,datasets:[{label:'E',data:incData,backgroundColor:'rgba(0,214,143,0.7)'},{label:'D',data:expData,backgroundColor:'rgba(255,71,87,0.7)'}]},options:{responsive:true,maintainAspectRatio:false}});
+}
+
+function renderDonutChart(){
+  const exps=monthExps(curMonth,curYear); const catMap={};
+  exps.forEach(e=>{catMap[e.cat]=(catMap[e.cat]||0)+parseFloat(e.value||0);});
+  const sorted=Object.entries(catMap).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  const ctx=document.getElementById('chart-donut');
+  if(donutChart) donutChart.destroy();
+  donutChart=new Chart(ctx,{type:'doughnut',data:{labels:sorted.map(([k])=>k),datasets:[{data:sorted.map(([,v])=>v),backgroundColor:COLORS}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}}}});
+  document.getElementById('donut-center-val').textContent=fmtShort(sorted.reduce((s,[,v])=>s+v,0));
+}
+
+function renderDespesas(){
+  const all=monthExps(curMonth,curYear);
+  document.getElementById('exp-list').innerHTML=all.length ? all.map(e=>`
+    <div class="exp-row ${e.paid?'paid-row':''}">
+      <div class="chk ${e.paid?'paid':''}" onclick="togglePaid('${e.id}')">${e.paid?'✓':''}</div>
+      <div class="exp-ico">${catEmoji(e.cat)}</div>
+      <div class="exp-info"><div class="exp-name">${e.description||e.desc}</div><div class="exp-meta"><span>${e.card_id?'💳 Card':'🏦 Banco'}</span></div></div>
+      <div class="exp-val ${e.paid?'':'rv-r'}">${fmt(e.value)}</div>
+      <div class="ha" style="margin-left:12px"><button class="icon-btn ib-edit" onclick="openEditExp('${e.id}')">✏️</button><button class="icon-btn ib-del" onclick="deleteExp('${e.id}')">🗑</button></div>
+    </div>`).join('') : '<div class="section-empty">Nenhuma despesa.</div>';
+}
+
+function renderEntradas(){
+  const all=monthIncs(curMonth,curYear);
+  document.getElementById('inc-list').innerHTML=all.length ? all.map(i=>`
+    <div class="exp-row">
+      <div class="exp-ico" style="background:rgba(0,214,143,0.1)">💚</div>
+      <div class="exp-info"><div class="exp-name">${i.description||i.desc}</div><div class="exp-meta">${i.date}</div></div>
+      <div class="exp-val rv-g">${fmt(i.value)}</div>
+      <div class="ha" style="margin-left:12px"><button class="icon-btn ib-del" onclick="deleteInc('${i.id}')">🗑</button></div>
+    </div>`).join('') : '<div class="section-empty">Nenhuma entrada.</div>';
+}
+
+function renderContas(){
+  document.getElementById('acc-list').innerHTML=S.accounts.map(a=>`
+    <div class="bank-card" style="border-left:4px solid ${a.color}">
+      <div style="display:flex; justify-content:space-between"><div><strong>${a.name}</strong><br><small>${a.bank}</small></div>
+      <div class="bank-card-balance">${fmt(a.balance)}</div></div>
+    </div>`).join('');
+}
+
+function renderCartoes(){
+  document.getElementById('cards-list').innerHTML=`<div class="sg sg-2">${S.cards.map(c=>`
+    <div class="cc" style="background:${c.color || '#7B61FF'}">
+       <div><div class="cc-chip"></div><div class="cc-num">•••• •••• •••• ${c.last_digits || '0000'}</div></div>
+       <div><strong>${c.name}</strong><div style="font-size:10px; opacity:0.7">Limite: ${fmt(c.limit)}</div></div>
+    </div>`).join('')}</div>`;
+}
+
+function renderRelatorio() { document.getElementById('relatorio').innerHTML='<div class="card">Análise em desenvolvimento...</div>'; }
+function renderCalendario() { document.getElementById('calendario').innerHTML='<div class="card">Agenda do mês em desenvolvimento...</div>'; }
+
+/* ══════════════════════════════════════════
+   CRUD (Supabase Actions)
+══════════════════════════════════════════ */
+async function togglePaid(id){
+    const e=S.expenses.find(x=>x.id===id); if(!e) return;
+    const { error } = await sb.from('transactions').update({ paid: !e.paid, paid_date: !e.paid ? new Date().toISOString() : null }).eq('id', id);
+    if(!error) await sync();
+}
+
+async function deleteExp(id){ if(confirm('Excluir?')){ await sb.from('transactions').delete().eq('id', id); await sync(); } }
+async function deleteInc(id){ if(confirm('Excluir?')){ await sb.from('transactions').delete().eq('id', id); await sync(); } }
+
+function openModal(type){ document.getElementById('modal').classList.add('open'); buildModal(type); }
+function closeModal(){ document.getElementById('modal').classList.remove('open'); }
+
+function buildModal(type){
+  const mb=document.getElementById('modal-body');
+  if(type==='expense'){
+    mb.innerHTML=`
+      <input id="f-desc" class="fi" style="margin-bottom:12px" placeholder="Descrição">
+      <input id="f-val" type="number" class="fi fi-lg" style="margin-bottom:12px" placeholder="0,00">
+      <div class="fi-row">
+        <input id="f-day" type="number" class="fi" placeholder="Dia">
+        <select id="f-cat" class="fi">${CATS.map(c=>`<option>${c.n}</option>`).join('')}</select>
+      </div>
+      <button class="auth-btn" style="margin-top:20px" onclick="saveExp()">SALVAR DESPESA</button>`;
+  } else if(type==='income'){
+    mb.innerHTML=`
+      <input id="f-desc" class="fi" style="margin-bottom:12px" placeholder="Descrição">
+      <input id="f-val" type="number" class="fi fi-lg" style="margin-bottom:12px" placeholder="0,00">
+      <input id="f-date" type="date" class="fi" style="margin-bottom:12px">
+      <button class="auth-btn" onclick="saveInc()">SALVAR ENTRADA</button>`;
+  } else if(type==='account'){
+    mb.innerHTML=`
+      <input id="f-name" class="fi" style="margin-bottom:12px" placeholder="Nome da Conta (ex: Banco X)">
+      <input id="f-val" type="number" class="fi fi-lg" style="margin-bottom:12px" placeholder="Saldo Atual">
+      <button class="auth-btn" onclick="saveAcc()">CRIAR CONTA</button>`;
+  }
+}
+
+async function saveExp(){
+  const d=document.getElementById('f-desc').value, v=document.getElementById('f-val').value, dy=document.getElementById('f-day').value, c=document.getElementById('f-cat').value;
+  await sb.from('transactions').insert({ description:d, value:v, day:dy, month:curMonth, year:curYear, cat:c, type:'despesa', user_id:S.user.id });
+  closeModal(); await sync();
+}
+async function saveInc(){
+  const d=document.getElementById('f-desc').value, v=document.getElementById('f-val').value, dt=document.getElementById('f-date').value;
+  await sb.from('transactions').insert({ description:d, value:v, date:dt, type:'receita', user_id:S.user.id });
+  closeModal(); await sync();
+}
+async function saveAcc(){
+  const n=document.getElementById('f-name').value, v=document.getElementById('f-val').value;
+  await sb.from('transactions').insert({ description: "Saldo Inicial "+n, value:v, type:'receita', cat:'Outros', date: new Date().toISOString(), user_id:S.user.id });
+  await sb.from('accounts').insert({ name:n, balance:v, bank:n, color:COLORS[0], user_id:S.user.id });
+  closeModal(); await sync();
+}
+
+/* Modais de Edição Simplificados para Dash */
+function openEditExp(id){ alert("Use a aba Despesas para edição detalhada."); }
+
+</script>
 </body>
 </html>
