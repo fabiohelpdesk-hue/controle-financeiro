@@ -3,12 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FinanceFlow Pro v1.0 | Controle de Elite</title>
+    <title>FinanceFlow Pro v1.0 | Elite Edition</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -17,221 +16,142 @@
     <style>
         :root {
             --bg: #0A0D14; --bg2: #111520; --bg3: #181E2E; --bg4: #1F2740; --bg5: #252D42;
-            --green: #00D68F; --red: #FF4757; --blue: #4A90E2; --yellow: #FFB830;
-            --purple: #A855F7; --orange: #FF8C42; --text: #EDF2FF; --text2: #7B88A0; --text3: #4A5568;
-            --sidebar-w: 248px; --radius: 12px;
+            --green: #00D68F; --green2: #00F0A0; --red: #FF4757; --blue: #4A90E2;
+            --yellow: #FFB830; --purple: #A855F7; --orange: #FF8C42; --teal: #00BCD4;
+            --text: #EDF2FF; --text2: #7B88A0; --text3: #4A5568;
+            --border: rgba(255,255,255,0.06); --border2: rgba(255,255,255,0.1);
+            --card-r: 16px; --sm-r: 10px;
+            --shadow: 0 4px 24px rgba(0,0,0,0.4);
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Nunito', sans-serif; -webkit-font-smoothing: antialiased; }
         body { background-color: var(--bg); color: var(--text); display: flex; height: 100vh; overflow: hidden; }
 
         /* Sidebar Deluxe */
-        .sidebar { width: var(--sidebar-w); background: var(--bg2); border-right: 1px solid var(--bg3); display: flex; flex-direction: column; padding: 28px 20px; transition: 0.3s; z-index: 1000; }
-        .logo { display: flex; align-items: center; gap: 12px; font-weight: 900; font-size: 1.4rem; color: var(--text); margin-bottom: 40px; }
-        .logo span { color: var(--green); }
-        .nav-item { display: flex; align-items: center; gap: 14px; padding: 14px 16px; border-radius: var(--radius); color: var(--text2); cursor: pointer; font-weight: 600; margin-bottom: 4px; transition: 0.2s; position: relative; }
-        .nav-item:hover { background: var(--bg3); color: var(--text); }
-        .nav-item.active { background: rgba(0, 214, 143, 0.1); color: var(--green); border: 1px solid rgba(0,214,143,0.15); }
-        .nav-badge { position: absolute; right: 12px; background: var(--red); color: white; font-size: 10px; padding: 2px 6px; border-radius: 10px; font-weight: 800; }
+        .sidebar { width: 248px; background: var(--bg2); border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 22px 14px; height: 100vh; z-index: 1000; flex-shrink: 0; transition: width 0.25s; }
+        .logo { display: flex; align-items: center; gap: 10px; padding: 0 8px 24px; border-bottom: 1px solid var(--border); margin-bottom: 6px; }
+        .logo-icon { width: 38px; height: 38px; background: var(--green); border-radius: 11px; display: flex; align-items: center; justify-content: center; font-size: 19px; flex-shrink: 0; }
+        .logo-text { font-size: 18px; font-weight: 900; letter-spacing: -0.3px; }
+        .logo-text span { color: var(--green); }
+        .nav-sec { font-size: 10px; font-weight: 800; color: var(--text3); text-transform: uppercase; letter-spacing: 1.2px; padding: 0 10px; margin: 16px 0 5px; }
+        .ni { display: flex; align-items: center; gap: 9px; padding: 10px 12px; border-radius: var(--sm-r); cursor: pointer; font-size: 13px; font-weight: 600; color: var(--text2); transition: 0.18s; margin-bottom: 2px; position: relative; }
+        .ni:hover { background: var(--bg3); color: var(--text); }
+        .ni.active { background: rgba(0, 214, 143, 0.13); color: var(--green); }
+        .ni-badge { position: absolute; right: 12px; background: var(--red); color: #fff; font-size: 10px; font-weight: 800; padding: 2px 7px; border-radius: 20px; }
 
-        /* Content Area */
-        .main { flex: 1; padding: 28px; overflow-y: auto; display: none; flex-direction: column; gap: 28px; }
-        .main.active { display: flex; }
+        /* Main Context */
+        .main-wrapper { flex: 1; min-height: 100vh; overflow-y: auto; background: var(--bg); padding: 28px; }
+        .page { display: none; animation: fadeIn 0.2s ease; }
+        .page.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* Header Section */
-        .header { display: flex; justify-content: space-between; align-items: center; }
-        .nav-month { display: flex; align-items: center; gap: 12px; background: var(--bg2); padding: 8px 16px; border-radius: var(--radius); border: 1px solid var(--bg3); }
-        .btn-circle { cursor: pointer; color: var(--text2); display: flex; align-items: center; }
-        .btn-circle:hover { color: var(--text); }
+        /* Cards & Grids */
+        .sg { display: grid; gap: 12px; margin-bottom: 18px; grid-template-columns: repeat(4, 1fr); }
+        .sc { background: var(--bg2); border-radius: 14px; padding: 18px; border: 1px solid var(--border); position: relative; overflow: hidden; }
+        .sc-val { font-size: 22px; font-weight: 900; margin-bottom: 5px; letter-spacing: -0.5px; }
+        .sc.g { border-left: 4px solid var(--green); } .sc.r { border-left: 4px solid var(--red); }
+        
+        /* Premium Layouts */
+        .g2 { display: grid; grid-template-columns: 3fr 2fr; gap: 14px; margin-bottom: 16px; }
+        .card { background: var(--bg2); border-radius: var(--card-r); padding: 20px; border: 1px solid var(--border); }
+        .row { display: flex; align-items: center; justify-content: space-between; padding: 11px 0; border-bottom: 1px solid rgba(255,255,255,0.04); }
+        
+        /* Buttons */
+        .btn { padding: 9px 18px; border-radius: var(--sm-r); font-size: 12px; font-weight: 700; cursor: pointer; border: none; display: inline-flex; align-items: center; gap: 6px; }
+        .btn-p { background: var(--green); color: #0A0D14; }
+        .btn-g { background: var(--bg3); color: var(--text2); }
 
-        /* Grid Cards */
-        .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
-        .card { background: var(--bg2); padding: 24px; border-radius: var(--radius); border: 1px solid var(--bg3); box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
-        .card-label { font-size: 11px; font-weight: 800; color: var(--text2); text-transform: uppercase; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
-        .card-val { font-size: 24px; font-weight: 900; font-family: 'Outfit', sans-serif; }
-
-        /* Two Columns Layout */
-        .dashboard-layout { display: grid; grid-template-columns: 1.8fr 1fr; gap: 24px; }
-        .sub-sec { display: flex; flex-direction: column; gap: 20px; }
-        .section-title { font-size: 14px; font-weight: 800; color: var(--text); margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
-
-        /* Transaction Item Pro */
-        .row { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; background: var(--bg2); border-radius: var(--radius); border: 1px solid var(--bg3); margin-bottom: 8px; transition: 0.2s; cursor: pointer; }
-        .row:hover { background: var(--bg3); border-color: var(--bg4); }
-        .row-icon { width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; background: var(--bg3); }
-        .row-info div:nth-child(1) { font-weight: 700; font-size: 14px; }
-        .row-info div:nth-child(2) { font-size: 11px; color: var(--text2); margin-top: 2px; }
-        .row-val { text-align: right; }
-        .row-val div:nth-child(1) { font-weight: 900; font-size: 15px; font-family: 'Outfit'; }
-        .row-val div:nth-child(2) { font-size: 9px; font-weight: 800; padding: 2px 8px; border-radius: 4px; display: inline-block; margin-top: 4px; }
-
-        /* Big Alert */
-        .alert-pro { padding: 20px; border-radius: var(--radius); display: flex; flex-direction: column; gap: 8px; font-size: 13px; font-weight: 700; }
-        .alert-danger { background: rgba(255, 71, 87, 0.1); border: 1px solid var(--red); color: var(--red); }
-        .alert-ok { background: rgba(0, 214, 143, 0.1); border: 1px solid var(--green); color: var(--green); }
-        .alert-warn { background: rgba(255, 184, 48, 0.1); border: 1px solid var(--yellow); color: var(--yellow); }
-
-        /* Charts Section */
-        .chart-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
-        .chart-card { background: var(--bg2); padding: 24px; border-radius: var(--radius); border: 1px solid var(--bg3); height: 320px; }
-
-        /* Modal Universal */
+        /* Modals */
         .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); display: none; align-items: center; justify-content: center; z-index: 5000; }
-        .modal { background: var(--bg2); width: 480px; max-height: 90vh; overflow-y: auto; border-radius: 20px; padding: 40px; border: 1px solid var(--bg3); box-shadow: 0 30px 60px rgba(0,0,0,0.5); }
-        .input-group { margin-bottom: 20px; }
-        .input-label { display: block; font-size: 11px; font-weight: 800; color: var(--text2); text-transform: uppercase; margin-bottom: 8px; }
-        .input-pro { width: 100%; padding: 14px 18px; background: var(--bg3); border: 1px solid var(--bg4); border-radius: var(--radius); color: var(--text); outline: none; transition: 0.2s; font-size: 15px; }
-        .input-pro:focus { border-color: var(--green); background: var(--bg4); }
-        .btn-action { width: 100%; padding: 16px; border-radius: var(--radius); border: none; font-weight: 900; font-size: 16px; cursor: pointer; background: var(--green); color: var(--bg); transition: 0.2s; }
-        .btn-action:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0, 214, 143, 0.3); }
+        .modal { background: var(--bg2); width: 480px; padding: 28px; border-radius: 20px; border: 1px solid var(--border2); }
+        .input-pro { width: 100%; padding: 11px 14px; background: var(--bg3); border: 1px solid var(--border2); border-radius: 10px; color: var(--text); outline: none; margin-bottom: 15px; }
 
         /* Login */
         .auth-screen { position: fixed; inset: 0; background: var(--bg); display: flex; align-items: center; justify-content: center; z-index: 9999; }
-        .auth-card { background: var(--bg2); width: 400px; padding: 50px; border-radius: 20px; border: 1px solid var(--bg3); text-align: center; }
+        .auth-card { background: var(--bg2); width: 400px; padding: 50px; border-radius: 20px; border: 1px solid var(--border); text-align: center; }
 
         .hidden { display: none !important; }
-        .badge-red { background: rgba(255, 71, 87, 0.15); color: var(--red); }
-        .badge-green { background: rgba(0, 214, 143, 0.15); color: var(--green); }
-        .badge-yellow { background: rgba(255, 184, 48, 0.15); color: var(--yellow); }
     </style>
 </head>
 <body>
 
-    <!-- AUTH SECTION -->
+    <!-- AUTHENTICATION -->
     <div id="auth-screen" class="auth-screen">
         <div class="auth-card">
-            <div class="logo" style="justify-content:center; font-size:1.8rem"><i data-lucide="wallet"></i> Finance<span>Flow</span> Pro</div>
-            <p style="color:var(--text2); margin-top:12px; margin-bottom:40px; font-weight:600">Gestão Inteligente v1.0</p>
+            <div class="logo-icon" style="margin:0 auto 24px">💰</div>
+            <h1 style="font-weight:900; font-size:1.6rem">FinanceFlow <span style="color:var(--green)">Pro</span></h1>
+            <p style="color:var(--text2); margin-bottom:40px">Acesse sua Inteligência Financeira</p>
             <form id="auth-form">
-                <div class="input-group">
-                    <input type="email" id="auth-email" class="input-pro" placeholder="Seu e-mail" required>
-                </div>
-                <div class="input-group">
-                    <input type="password" id="auth-pass" class="input-pro" placeholder="Sua senha" required>
-                </div>
-                <button type="submit" class="btn-action">ENTRAR NO SISTEMA</button>
+                <input type="email" id="auth-email" class="input-pro" placeholder="E-mail" required>
+                <input type="password" id="auth-pass" class="input-pro" placeholder="Senha" required>
+                <button type="submit" class="btn btn-p" style="width:100%; padding:14px; font-size:14px">ENTRAR NO SISTEMA</button>
                 <div id="auth-error" style="color:var(--red); font-size:12px; margin-top:20px; display:none; padding:12px; background:rgba(255,71,87,0.1); border-radius:10px"></div>
             </form>
-            <p style="margin-top:40px; font-size:10px; color:var(--text3); letter-spacing:1px">PRIVATE LUXURY ACCESS</p>
         </div>
     </div>
 
-    <!-- SIDEBAR -->
-    <aside class="sidebar" id="app-sidebar" style="display:none">
-        <div class="logo"><i data-lucide="wallet" style="color:var(--green)"></i> Finance<span>Flow</span></div>
-        <nav>
-            <div class="nav-item active" data-page="dash"><i data-lucide="layout-dashboard"></i> Dashboard</div>
-            <div class="nav-item" data-page="expenses"><i data-lucide="arrow-down-circle"></i> Despesas <span class="nav-badge" id="badge-overdue">0</span></div>
-            <div class="nav-item" data-page="incomes"><i data-lucide="arrow-up-circle"></i> Entradas</div>
-            <div class="nav-item" data-page="accounts"><i data-lucide="landmark"></i> Contas</div>
-            <div class="nav-item" data-page="cards"><i data-lucide="credit-card"></i> Cartões</div>
-            <div class="nav-item" data-page="reports"><i data-lucide="pie-chart"></i> Relatórios</div>
-        </nav>
-        <div style="margin-top:auto">
-            <div id="user-email" style="font-size:10px; color:var(--text2); text-align:center; margin-bottom:12px; font-weight:700"></div>
-            <div class="nav-item" id="btn-logout" style="color:var(--red)"><i data-lucide="power"></i> Desconectar</div>
-        </div>
-    </aside>
-
-    <!-- VIEWS: DASHBOARD -->
-    <main class="main" id="view-dash">
-        <header class="header">
-            <div>
-                <h2 style="font-weight:900; font-size:1.8rem">Painel Financeiro</h2>
-                <p style="color:var(--text2); font-weight:600" id="dash-date-label">Março 2026</p>
+    <div class="app" id="app-content" style="display:none">
+        
+        <!-- SIDEBAR -->
+        <aside class="sidebar">
+            <div class="logo">
+                <div class="logo-icon">💰</div>
+                <div class="logo-text">Finance<span>Flow</span></div>
             </div>
-            <div style="display:flex; gap:16px; align-items:center">
-                <div class="nav-month">
-                    <div class="btn-circle" onclick="changeMonth(-1)"><i data-lucide="chevron-left"></i></div>
-                    <span id="label-month" style="font-weight:800; min-width:100px; text-align:center">MARÇO</span>
-                    <div class="btn-circle" onclick="changeMonth(1)"><i data-lucide="chevron-right"></i></div>
+            <nav>
+                <div class="nav-sec">Principal</div>
+                <div class="ni active" onclick="nav('dashboard')"><span>📊 Dashboard</span></div>
+                <div class="ni" onclick="nav('despesas')"><span>📋 Despesas</span><span class="ni-badge" id="badge-venc">0</span></div>
+                <div class="ni" onclick="nav('entradas')"><span>💚 Entradas</span></div>
+                <div class="nav-sec">Finanças</div>
+                <div class="ni" onclick="nav('contas')"><span>🏦 Contas</span></div>
+                <div class="ni" onclick="nav('cartoes')"><span>💳 Cartões</span></div>
+                <div class="nav-sec">Análise</div>
+                <div class="ni" onclick="nav('relatorio')"><span>📈 Relatório</span></div>
+            </nav>
+            <div style="margin-top:auto; padding-top:16px; border-top:1px solid var(--border)">
+                <div style="font-size:11px; text-align:center; color:var(--text3); margin-bottom:12px" id="user-display"></div>
+                <div class="ni" id="logout-btn" style="color:var(--red)"><span>🚪 Sair</span></div>
+            </div>
+        </aside>
+
+        <!-- MAIN -->
+        <main class="main-wrapper">
+            
+            <!-- DASHBOARD -->
+            <div class="page active" id="page-dashboard">
+                <div style="display:flex; justify-content:space-between; margin-bottom:24px">
+                    <div><h1 style="font-size:22px; font-weight:900">Dashboard</h1><p style="color:var(--text2); font-size:12px">Visão geral do mês</p></div>
+                    <button class="btn btn-p" onclick="openModal('expense')">＋ Lançar</button>
                 </div>
-                <button class="btn-action" onclick="openModal('expense')" style="padding:10px 24px; width:auto; font-size:14px"><i data-lucide="plus"></i> LANÇAR</button>
-            </div>
-        </header>
-
-        <section class="stat-grid">
-            <div class="card"><div class="card-label">💚 Entradas Mês</div><div class="card-val" id="dash-in" style="color:var(--green)">R$ 0,00</div></div>
-            <div class="card"><div class="card-label">🔴 Despesas Mês</div><div class="card-val" id="dash-exp" style="color:var(--red)">R$ 0,00</div></div>
-            <div class="card"><div class="card-label">🏦 Saldo Contas</div><div class="card-val" id="dash-total" style="color:var(--blue)">R$ 0,00</div></div>
-            <div class="card"><div class="card-label">📊 Resultado</div><div class="card-val" id="dash-res">R$ 0,00</div></div>
-        </section>
-
-        <section class="dashboard-layout">
-            <div class="sub-sec">
-                <div class="section-title">A PAGAR <span style="font-size:10px; opacity:0.6; margin-left:10px">Próximos vencimentos</span></div>
-                <div id="list-overdue"></div>
                 
-                <div class="section-title" style="margin-top:20px">ÚLTIMAS ENTRADAS</div>
-                <div id="list-recent-in"></div>
-            </div>
-
-            <div class="sub-sec">
-                <div class="section-title">ALERTAS INTELIGENTES</div>
-                <div id="dash-alerts"></div>
-
-                <div class="section-title" style="margin-top:20px">SALDO POR CONTA</div>
-                <div id="list-acc-mini"></div>
-            </div>
-        </section>
-
-        <section class="chart-grid">
-            <div class="chart-card"><canvas id="chart-flow"></canvas></div>
-            <div class="chart-card"><canvas id="chart-cats"></canvas></div>
-        </section>
-    </main>
-
-    <!-- VIEW: EXPENSES -->
-    <main class="main" id="view-expenses">
-        <header class="header"><h1>Despesas</h1><button class="btn-action" onclick="openModal('expense')" style="width:auto">+ Nova Despesa</button></header>
-        <div id="full-expenses-list"></div>
-    </main>
-
-    <!-- MODAL UNIVERSAL -->
-    <div class="modal-overlay" id="modal-universal">
-        <div class="modal">
-            <h2 id="modal-title" style="margin-bottom:32px; font-weight:900">Nova Despesa</h2>
-            <form id="form-universal">
-                <div class="input-group">
-                    <label class="input-label">Descrição</label>
-                    <input type="text" id="m-desc" class="input-pro" placeholder="Ex: Aluguel, Supermercado..." required>
+                <div class="sg">
+                    <div class="sc g"><div style="font-size:10px; font-weight:800; color:var(--text3)">ENTRADAS</div><div class="sc-val" id="d-in" style="color:var(--green)">R$ 0,00</div></div>
+                    <div class="sc r"><div style="font-size:10px; font-weight:800; color:var(--text3)">DESPESAS</div><div class="sc-val" id="d-out" style="color:var(--red)">R$ 0,00</div></div>
+                    <div class="sc b"><div style="font-size:10px; font-weight:800; color:var(--text3)">SALDO CONTAS</div><div class="sc-val" id="d-total" style="color:var(--blue)">R$ 0,00</div></div>
+                    <div class="sc p"><div style="font-size:10px; font-weight:800; color:var(--text3)">RESULTADO</div><div class="sc-val" id="d-res">R$ 0,00</div></div>
                 </div>
-                <div style="display:flex; gap:16px" class="input-group">
-                    <div style="flex:1">
-                        <label class="input-label">Valor R$</label>
-                        <input type="number" step="0.01" id="m-val" class="input-pro" placeholder="0.00" required>
+
+                <div class="g2">
+                    <div class="card">
+                        <div style="font-weight:800; margin-bottom:16px">🔴 A PAGAR</div>
+                        <div id="d-apagar"></div>
                     </div>
-                    <div style="flex:1" id="m-due-field">
-                        <label class="input-label">Dia Vencimento</label>
-                        <input type="number" id="m-day" class="input-pro" min="1" max="31" value="10">
+                    <div class="card">
+                        <div style="font-weight:800; margin-bottom:16px">🏦 SALDO POR CONTA</div>
+                        <div id="d-contas"></div>
                     </div>
                 </div>
-                <div class="input-group">
-                    <label class="input-label">Categoria</label>
-                    <select id="m-cat" class="input-pro">
-                        <option value="Mercado">🛒 Mercado</option>
-                        <option value="Lazer">🍿 Lazer</option>
-                        <option value="Transporte">🚗 Transporte</option>
-                        <option value="Moradia">🏠 Moradia</option>
-                        <option value="Saúde">🏥 Saúde</option>
-                        <option value="Educação">📚 Educação</option>
-                        <option value="Salário">💰 Salário</option>
-                        <option value="Outros">📦 Outros</option>
-                    </select>
-                </div>
-                <div id="m-origin-sec" class="input-group">
-                    <label class="input-label">Pagar por:</label>
-                    <select id="m-origin" class="input-pro">
-                        <option value="manual">🏦 Conta Bancária</option>
-                        <option value="card">💳 Cartão de Crédito</option>
-                    </select>
-                </div>
-                <footer style="display:flex; gap:12px; margin-top:20px">
-                    <button type="button" class="btn-action" onclick="closeModal()" style="background:var(--bg3); color:var(--text2); flex:1">CANCELAR</button>
-                    <button type="submit" class="btn-action" style="flex:2">SALVAR LANÇAMENTO</button>
-                </footer>
-            </form>
-        </div>
+            </div>
+
+            <!-- OTHER PAGES (Dynamic load) -->
+            <div class="page" id="page-despesas"><h1 style="font-weight:900">Despesas & Contas</h1><div id="exp-list" style="margin-top:20px"></div></div>
+            <div class="page" id="page-entradas"><h1 style="font-weight:900">Entradas</h1><div id="inc-list" style="margin-top:20px"></div></div>
+            <div class="page" id="page-contas"><h1 style="font-weight:900">Contas Bancárias</h1><div id="acc-list" style="margin-top:20px"></div></div>
+            <div class="page" id="page-cartoes"><h1 style="font-weight:900">Cartões de Crédito</h1><div id="crd-list" style="margin-top:20px"></div></div>
+            <div class="page" id="page-relatorio"><h1 style="font-weight:900">Relatórios</h1><div id="report-content" style="margin-top:20px"></div></div>
+
+        </main>
     </div>
 
     <script>
@@ -241,17 +161,13 @@
 
         const S = { 
             user: null, 
-            month: new Date().getMonth(), 
-            year: new Date().getFullYear(),
-            accounts: [], cards: [], expenses: [], incomes: []
+            month: new Date().getMonth(), year: new Date().getFullYear(),
+            accounts: [], cards: [], transactions: []
         };
-        const MONTHS = ['JANEIRO','FEVEREIRO','MARÇO','ABRIL','MAIO','JUNHO','JULHO','AGOSTO','SETEMBRO','OUTUBRO','NOVEMBRO','DEZEMBRO'];
-        const CAT_EMOJIS = {'Mercado':'🛒','Lazer':'🍿','Transporte':'🚗','Moradia':'🏠','Saúde':'🏥','Educação':'📚','Salário':'💰','Outros':'📦'};
 
-        const fmt = v => 'R$ ' + parseFloat(v||0).toLocaleString('pt-BR', {minimumFractionDigits: 2});
-        
+        const fmt = v => 'R$ ' + parseFloat(v||0).toLocaleString('pt-BR', {minimumFractionDigits:2});
+
         window.onload = async () => {
-            lucide.createIcons();
             const { data: { session } } = await sb.auth.getSession();
             handleAuth(session?.user || null);
         };
@@ -260,13 +176,12 @@
             S.user = user;
             if (user) {
                 document.getElementById('auth-screen').classList.add('hidden');
-                document.getElementById('app-sidebar').style.display = 'flex';
-                document.getElementById('view-dash').classList.add('active');
-                document.getElementById('user-email').innerText = user.email;
+                document.getElementById('app-content').style.display = 'flex';
+                document.getElementById('user-display').innerText = user.email;
                 sync();
             } else {
                 document.getElementById('auth-screen').classList.remove('hidden');
-                document.getElementById('app-sidebar').style.display = 'none';
+                document.getElementById('app-content').style.display = 'none';
             }
         }
 
@@ -274,151 +189,68 @@
             e.preventDefault();
             const email = document.getElementById('auth-email').value;
             const password = document.getElementById('auth-pass').value;
-            const err = document.getElementById('auth-error');
             const { data, error } = await sb.auth.signInWithPassword({ email, password });
-            if (error) { err.innerText = "Acesso Negado: Verifique seus dados."; err.style.display = 'block'; }
-            else { handleAuth(data.user); }
+            if (error) { 
+                const err = document.getElementById('auth-error');
+                err.innerText = "Acesso Negado: Verifique os dados."; err.style.display = 'block';
+            } else { handleAuth(data.user); }
         };
 
         async function sync() {
-            const [accs, crds, exps, incs] = await Promise.all([
+            const [accs, crds, trans] = await Promise.all([
                 sb.from('accounts').select('*'),
                 sb.from('cards').select('*'),
-                sb.from('transactions').select('*').eq('type', 'despesa'),
-                sb.from('transactions').select('*').eq('type', 'receita')
+                sb.from('transactions').select('*')
             ]);
             S.accounts = accs.data || [];
             S.cards = crds.data || [];
-            S.expenses = exps.data || [];
-            S.incomes = incs.data || [];
+            S.transactions = trans.data || [];
             renderDash();
         }
 
         function renderDash() {
-            const m = S.month, y = S.year;
-            document.getElementById('label-month').innerText = MONTHS[m];
-            document.getElementById('dash-date-label').innerText = `${MONTHS[m]} ${y}`;
+            const exps = S.transactions.filter(t => t.type === 'despesa');
+            const incs = S.transactions.filter(t => t.type === 'receita');
+            
+            const sumEx = exps.reduce((s, x) => s + parseFloat(x.value), 0);
+            const sumIn = incs.reduce((s, x) => s + parseFloat(x.value), 0);
+            const balance = S.accounts.reduce((s, x) => s + parseFloat(x.balance), 0);
 
-            const curIn = S.incomes.filter(i => new Date(i.date).getMonth() === m && new Date(i.date).getFullYear() === y).reduce((s, x) => s + parseFloat(x.value), 0);
-            const curEx = S.expenses.filter(e => e.month === m && e.year === y).reduce((s, x) => s + parseFloat(x.value), 0);
-            const curOpen = S.expenses.filter(e => e.month === m && e.year === y && !e.paid).reduce((s, x) => s + parseFloat(x.value), 0);
-            const totalSaldo = S.accounts.reduce((s, x) => s + parseFloat(x.balance), 0);
-
-            document.getElementById('dash-in').innerText = fmt(curIn);
-            document.getElementById('dash-exp').innerText = fmt(curEx);
-            document.getElementById('dash-total').innerText = fmt(totalSaldo);
-            document.getElementById('dash-res').innerText = fmt(curIn - curEx);
-            document.getElementById('dash-res').style.color = (curIn - curEx) >= 0 ? 'var(--green)' : 'var(--red)';
+            document.getElementById('d-in').innerText = fmt(sumIn);
+            document.getElementById('d-out').innerText = fmt(sumEx);
+            document.getElementById('d-total').innerText = fmt(balance);
+            document.getElementById('d-res').innerText = fmt(sumIn - sumEx);
+            document.getElementById('d-res').style.color = (sumIn - sumEx) >= 0 ? 'var(--green)' : 'var(--red)';
 
             // Overdue List
-            const listOver = document.getElementById('list-overdue');
-            listOver.innerHTML = '';
-            const overdueItems = S.expenses.filter(e => !e.paid && e.month === m).sort((a,b) => a.day - b.day).slice(0,5);
-            overdueItems.forEach(e => {
-                const div = document.createElement('div');
-                div.className = 'row';
-                div.innerHTML = `
-                    <div style="display:flex; gap:16px; align-items:center">
-                        <div class="row-icon">${CAT_EMOJIS[e.category_id] || '📦'}</div>
-                        <div class="row-info"><div>${e.description}</div><div>Vence dia ${e.day}</div></div>
-                    </div>
-                    <div class="row-val">
-                        <div style="color:var(--red)">-${fmt(e.value).replace('R$','')}</div>
-                        <div class="badge-red">EM ABERTO</div>
-                    </div>
-                `;
-                listOver.appendChild(div);
-            });
+            const overdue = exps.filter(e => !e.paid).slice(0, 5);
+            document.getElementById('d-apagar').innerHTML = overdue.length ? overdue.map(e => `
+                <div class="row">
+                    <div><div style="font-weight:700">${e.description}</div><div style="font-size:10px; color:var(--text3)">Vence em ${e.day||'--'}</div></div>
+                    <div style="color:var(--red); font-weight:800">${fmt(e.value)}</div>
+                </div>
+            `).join('') : '<p style="font-size:12px; opacity:0.3; padding:20px; text-align:center">Tudo pago!</p>';
 
-            // Smart Alerts
-            const alerts = document.getElementById('dash-alerts');
-            alerts.innerHTML = '';
-            if (curOpen > totalSaldo) {
-                alerts.innerHTML = `<div class="alert-pro alert-danger"><i data-lucide="alert-triangle"></i> SALDO INSUFICIENTE! Falta ${fmt(curOpen - totalSaldo)} para quitar o mês.</div>`;
-            } else if ((totalSaldo - curOpen) < 1000) {
-                alerts.innerHTML = `<div class="alert-pro alert-warn"><i data-lucide="info"></i> SALDO APERTADO: Após pagar tudo sobrará apenas ${fmt(totalSaldo - curOpen)}.</div>`;
-            } else {
-                alerts.innerHTML = `<div class="alert-pro alert-ok"><i data-lucide="check-circle"></i> CONTA SAUDÁVEL! Sobram ${fmt(totalSaldo - curOpen)} após quitar o mês.</div>`;
-            }
-            
-            lucide.createIcons();
-            renderCharts();
+            // Accounts List
+            document.getElementById('d-contas').innerHTML = S.accounts.map(a => `
+                <div class="row">
+                    <div style="font-weight:700">${a.name}</div>
+                    <div style="color:var(--green); font-weight:800">${fmt(a.balance)}</div>
+                </div>
+            `).join('');
         }
 
-        let flowChart, pieChart;
-        function renderCharts() {
-            const ctx1 = document.getElementById('chart-flow').getContext('2d');
-            if (flowChart) flowChart.destroy();
-            flowChart = new Chart(ctx1, {
-                type: 'bar',
-                data: {
-                    labels: ['Out','Dez','Jan','Fev','Mar'],
-                    datasets: [
-                        { label: 'Entradas', data: [1500, 2200, 3100, 2800, 4200], backgroundColor: '#00D68F', borderRadius: 6 },
-                        { label: 'Despesas', data: [900, 1800, 2500, 2100, 1900], backgroundColor: '#FF4757', borderRadius: 6 }
-                    ]
-                },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { display: false }, x: { grid: { display: false } } } }
-            });
-
-            const ctx2 = document.getElementById('chart-cats').getContext('2d');
-            if (pieChart) pieChart.destroy();
-            const cats = {};
-            S.expenses.filter(e => e.month === S.month).forEach(e => cats[e.category_id] = (cats[e.category_id]||0) + parseFloat(e.value));
-            
-            pieChart = new Chart(ctx2, {
-                type: 'doughnut',
-                data: {
-                    labels: Object.keys(cats),
-                    datasets: [{ data: Object.values(cats), backgroundColor: ['#00D68F', '#FF4757', '#4A90E2', '#FFB830', '#A855F7'], borderWidth: 0 }]
-                },
-                options: { responsive: true, maintainAspectRatio: false, cutout: '70%', plugins: { legend: { display: false } } }
-            });
+        function nav(page) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.ni').forEach(n => n.classList.remove('active'));
+            document.getElementById(`page-${page}`).classList.add('active');
+            event.currentTarget.classList.add('active');
         }
 
-        window.changeMonth = (step) => {
-            S.month += step;
-            if (S.month < 0) { S.month = 11; S.year--; }
-            if (S.month > 11) { S.month = 0; S.year++; }
-            renderDash();
+        document.getElementById('logout-btn').onclick = async () => {
+            await sb.auth.signOut();
+            handleAuth(null);
         };
-
-        window.openModal = (type) => {
-            document.getElementById('modal-universal').style.display = 'flex';
-            document.getElementById('modal-title').innerText = type === 'expense' ? 'Nova Despesa' : 'Nova Entrada';
-        };
-
-        window.closeModal = () => document.getElementById('modal-universal').style.display = 'none';
-
-        document.getElementById('form-universal').onsubmit = async (e) => {
-            e.preventDefault();
-            const type = document.getElementById('modal-title').innerText.includes('Despesa') ? 'despesa' : 'receita';
-            const payload = {
-                user_id: S.user.id,
-                description: document.getElementById('m-desc').value,
-                value: parseFloat(document.getElementById('m-val').value),
-                type: type,
-                category_id: document.getElementById('m-cat').value,
-                day: parseInt(document.getElementById('m-day').value),
-                month: S.month,
-                year: S.year,
-                date: new Date(S.year, S.month, document.getElementById('m-day').value).toISOString()
-            };
-            const { error } = await sb.from('transactions').insert([payload]);
-            if (!error) { closeModal(); sync(); }
-        };
-
-        document.getElementById('btn-logout').onclick = async () => { await sb.auth.signOut(); handleAuth(null); };
-
-        document.querySelectorAll('.nav-item').forEach(n => {
-            n.onclick = () => {
-                document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-                n.classList.add('active');
-                document.querySelectorAll('.main').forEach(m => m.classList.remove('active'));
-                document.getElementById(`view-${n.dataset.page}`).classList.add('active');
-                lucide.createIcons();
-            }
-        });
     </script>
 </body>
 </html>
