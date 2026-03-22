@@ -565,11 +565,93 @@
                     <div style="display:flex; justify-content:space-between; align-items:flex-end">
                         <div><div style="font-size:11px; font-weight:800">${c.name}</div><div style="font-size:9px; opacity:.7">LIMITE: ${fmt(c.limit_val)}</div></div>
                         <div style="text-align:right">
+                            <button class="btn btn-sm" style="background:rgba(255,255,255,0.15); color:white; margin-right:5px" onclick="triggerImport('${c.id}')">📂 Importar CSV</button>
                             <button class="icon-btn" style="background:rgba(255,255,255,0.1); color:white" onclick="deleteCard('${c.id}')">🗑</button>
                         </div>
                     </div>
                 </div>
-            `).join('')}</div>`;
+            `).join('')}</div>
+            <input type="file" id="csv-input" style="display:none" accept=".csv" onchange="processCSV(this)">
+            `;
+        }
+
+        let importTargetId = null;
+        function triggerImport(id) {
+            importTargetId = id;
+            document.getElementById('csv-input').click();
+        }
+
+        async function processCSV(input) {
+            const file = input.files[0];
+            if(!file) return;
+
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                const text = e.target.result;
+                const lines = text.split('\n');
+                const imports = [];
+                
+                // Smart rules for auto-categorization
+                const rules = {
+                    'Alimentação': ['ifood','mcdonalds','habibs','arabis','restaurante','lanchonete','pizzaria','esfirra','burger','outback'],
+                    'Transporte': ['uber','99app','posto','combustivel', 'estacionamento'],
+                    'Saúde': ['raia','drogasil','farmacia','medico','hospital'],
+                    'Assinaturas': ['netflix','spotify','youtube','apple.com','disneyplus'],
+                    'Mercado': ['carrefour','extra','pao de acucar','assai','supermercado','mini mercado'],
+                    'Educação': ['escola','faculdade','livraria','udemy','hotmart'],
+                    'Lazer': ['cinema','steam','playstation','xbox','ingresso','show'],
+                    'Moradia': ['aluguel','condominio','enel','sabesp','comgas','internet']
+                };
+
+                for(let i=1; i<lines.length; i++) {
+                    const parts = lines[i].split(',');
+                    if(parts.length < 3) continue;
+
+                    const [dateStr, title, amountRaw] = parts;
+                    const amount = parseFloat(amountRaw);
+                    
+                    // Ignore card payments and positive credits (cashbacks, etc)
+                    if(amount <= 0 || title.toLowerCase().includes('pagamento recebido')) continue;
+
+                    // Auto-categorize
+                    let category = 'Outros';
+                    const titleLow = title.toLowerCase();
+                    for(const [cat, keywords] of Object.entries(rules)) {
+                        if(keywords.some(k => titleLow.includes(k))) {
+                            category = cat;
+                            break;
+                        }
+                    }
+
+                    const d = new Date(dateStr + 'T12:00:00'); // Use noon to avoid TZ issues
+                    imports.push({
+                        description: title,
+                        value: amount,
+                        type: 'despesa',
+                        category_id: category,
+                        day: d.getDate(),
+                        month: d.getMonth(),
+                        year: d.getFullYear(),
+                        card_id: importTargetId,
+                        user_id: S.user.id,
+                        date: dateStr,
+                        paid: true
+                    });
+                }
+
+                if(imports.length > 0) {
+                    const { error } = await sb.from('transactions').insert(imports);
+                    if(error) alert('Erro ao importar: ' + error.message);
+                    else {
+                        alert(imports.length + ' transações importadas com sucesso!');
+                        await syncAll();
+                    }
+                } else {
+                    alert('Nenhuma transação nova encontrada no arquivo.');
+                }
+                input.value = ''; // Reset input
+            };
+            reader.readAsText(file);
         }
 
         function renderRelatorio() {
