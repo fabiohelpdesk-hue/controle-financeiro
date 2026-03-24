@@ -626,6 +626,10 @@
                 // Sobreposição que reforça a cor do banco (predomínio)
                 const overlayStyle = `background: linear-gradient(135deg, rgba(0,0,0,0.1) 0%, ${bankColor}99 100%);`;
 
+                // Cálculo do valor a pagar (não pago no mês atual)
+                const cardTxns = S.transactions.filter(t => t.card_id === c.id && t.month === curMonth && t.year === curYear);
+                const valorAPagar = cardTxns.filter(t => !t.paid).reduce((s,t) => s + parseFloat(t.value), 0);
+
                 return `
                 <div class="cc" style="${bgStyle}">
                     <div class="cc-overlay" style="${overlayStyle}"></div>
@@ -643,7 +647,8 @@
                         <div style="display:flex; justify-content:space-between; align-items:flex-end">
                             <div>
                                 <div style="font-size:12px; font-weight:900; text-transform:uppercase; letter-spacing:1.5px; margin-bottom: 2px;">${c.name}</div>
-                                <div style="font-size:10px; font-weight:700; opacity:0.9">LIMITE: ${fmt(c.limit_val)}</div>
+                                <div style="font-size:10px; font-weight:800; color:var(--text); text-shadow:none; background:rgba(255,71,87,0.8); padding:2px 6px; border-radius:4px; display:inline-block; margin-bottom:4px">A PAGAR: ${fmt(valorAPagar)}</div>
+                                <div style="font-size:10px; font-weight:700; opacity:0.9">VENCIMENTO: DIA ${c.due_day || '--'}</div>
                             </div>
                             <div style="text-align:right">
                                 <button class="btn btn-sm" style="background:rgba(255,255,255,0.25); color:white; border:1px solid rgba(255,255,255,0.4); margin-right:5px; backdrop-filter:blur(10px); font-weight:800;" onclick="triggerImport('${c.id}')">📂 Importar CSV</button>
@@ -911,7 +916,10 @@
                 body.innerHTML = `
                     <div class="fg"><label class="fl-lbl">Nome do Cartão</label><input class="fi" id="f-name" placeholder="Ex: Meu Roxinho"></div>
                     <div class="fg"><label class="fl-lbl">4 Últimos Dígitos</label><input class="fi" id="f-digits" maxlength="4"></div>
-                    <div class="fg"><label class="fl-lbl">Limite total</label><input class="fi fi-lg" id="f-limit" type="number"></div>
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px">
+                        <div class="fg"><label class="fl-lbl">Limite total</label><input class="fi" id="f-limit" type="number"></div>
+                        <div class="fg"><label class="fl-lbl">Vencimento (Dia)</label><input class="fi" id="f-due" type="number" min="1" max="31"></div>
+                    </div>
                 `;
                 btn.style.display = 'block';
                 btn.onclick = saveCard;
@@ -1009,9 +1017,11 @@
             const name = document.getElementById('f-name').value;
             const digits = document.getElementById('f-digits').value;
             const limit = document.getElementById('f-limit').value;
+            const dueDay = document.getElementById('f-due').value;
             
             await sb.from('cards').insert({
                 name, digits, limit_val: limit, 
+                due_day: dueDay,
                 user_id: S.user.id,
                 color: COLORS[Math.floor(Math.random()*COLORS.length)]
             });

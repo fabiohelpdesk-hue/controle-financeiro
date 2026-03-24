@@ -36,7 +36,22 @@ CREATE POLICY "Users can update their own transactions" ON transactions
 CREATE POLICY "Users can delete their own transactions" ON transactions
     FOR DELETE USING (auth.uid() = user_id);
     
--- Passo Extra: Garantir acesso público ao serviço (PostgREST)
-GRANT ALL ON TABLE transactions TO anon;
-GRANT ALL ON TABLE transactions TO authenticated;
-GRANT ALL ON TABLE transactions TO service_role;
+-- 4. Criar a tabela de cartões
+CREATE TABLE IF NOT EXISTS cards (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+    name TEXT NOT NULL,
+    digits TEXT,
+    limit_val DECIMAL(12,2),
+    due_day INTEGER, -- Dia de vencimento (1-31)
+    color TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
+);
+
+-- Habilitar RLS para cartões
+ALTER TABLE cards ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Users can view their own cards" ON cards FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "Users can insert their own cards" ON cards FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Users can update their own cards" ON cards FOR UPDATE USING (auth.uid() = user_id);
+CREATE POLICY "Users can delete their own cards" ON cards FOR DELETE USING (auth.uid() = user_id);
+
