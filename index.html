@@ -618,10 +618,8 @@
                 const isNubank = c.name.toLowerCase().includes('nubank');
                 const bankColor = isNubank ? '#8505B8' : (c.color || '#4A90E2');
                 
-                // Estilo base: Cor do banco sempre presente como base e fallback
-                const bgStyle = isNubank 
-                    ? `background: ${bankColor} url('${nubankImg}') no-repeat center; background-size: cover;` 
-                    : `background: ${bankColor};`;
+                // Estilo base: Cor do banco sem imagem de fundo
+                const bgStyle = `background: ${bankColor};`;
                 
                 // Sobreposição que reforça a cor do banco (predomínio)
                 const overlayStyle = `background: linear-gradient(135deg, rgba(0,0,0,0.1) 0%, ${bankColor}99 100%);`;
