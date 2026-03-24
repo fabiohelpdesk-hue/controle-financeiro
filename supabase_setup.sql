@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS transactions (
     type TEXT CHECK (type IN ('receita', 'despesa')),
     category_id TEXT,
     account_name TEXT,
+    card_id UUID DEFAULT NULL, -- Vincula a um cartão de crédito (opcional)
     date DATE DEFAULT CURRENT_DATE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
 );

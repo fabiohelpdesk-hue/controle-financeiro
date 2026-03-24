@@ -161,9 +161,14 @@
         .bank-card-balance{font-size:26px;font-weight:900;letter-spacing:-.5px;}
         .bank-card-footer{display:flex;justify-content:space-between;align-items:center;margin-top:14px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.08);}
         
-        .cc{border-radius:16px;padding:22px;margin-bottom:10px;position:relative;overflow:hidden;min-height:165px;display:flex;flex-direction:column;justify-content:space-between;}
-        .cc-chip{width:30px;height:22px;border-radius:5px;background:rgba(255,255,255,0.25);margin-bottom:18px;}
-        .cc-num{font-size:14px;font-weight:700;letter-spacing:3px;opacity:.88;margin-bottom:14px;}
+        .cc {border-radius:20px;padding:24px;margin-bottom:12px;position:relative;overflow:hidden;min-height:180px;display:flex;flex-direction:column;justify-content:space-between;box-shadow: 0 10px 30px rgba(0,0,0,0.3); transition: transform 0.3s ease; border: 1px solid rgba(255,255,255,0.1); color: white; text-shadow: 0 2px 4px rgba(0,0,0,0.5);}
+        .cc:hover { transform: translateY(-5px); }
+        .cc-overlay { position: absolute; inset: 0; background: linear-gradient(135deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.4) 100%); z-index: 1; }
+        .cc-content { position: relative; z-index: 2; height: 100%; display: flex; flex-direction: column; justify-content: space-between; }
+        .cc-chip{width:38px;height:28px;border-radius:6px;background: linear-gradient(135deg, #ffd700, #b8860b); margin-bottom:20px; box-shadow: inset 0 1px 2px rgba(255,255,255,0.5); }
+        .cc-num{font-size:16px;font-weight:700;letter-spacing:4px;opacity:.95;margin-bottom:16px; font-family: 'Courier New', monospace;}
+        .cat-sel{background:var(--bg3);color:var(--text2);border:1px solid var(--border2);border-radius:6px;font-size:10px;padding:2px 4px;outline:none;cursor:pointer;margin-left:5px;}
+        .cat-sel:focus{border-color:var(--green);color:var(--text);}
         
         @media(max-width:800px){
             .sidebar{width:58px;padding:14px 8px;}.sidebar .logo-text,.sidebar .logo-sub,.sidebar .nav-sec,.sidebar .ni span:not(.ic),.sidebar .ni-badge,.sidebar .user-name,.sidebar .user-plan{display:none;}.sidebar .ni{justify-content:center;padding:10px;}.main{margin-left:58px;padding:16px;}
@@ -522,7 +527,11 @@
                     <div class="exp-row ${t.paid?'paid-row':''}">
                         <div class="chk ${t.paid?'paid':(isPast(t)?'ov':'')}" onclick="togglePaid('${t.id}', ${!t.paid})">${t.paid?'✓':''}</div>
                         <div class="row-ico" style="background:none; border:none; width:auto; font-size:18px">${getCatEmoji(t.category_id)}</div>
-                        <div class="row-info"><div class="row-name">${t.description}</div><div class="row-meta">Vence dia ${t.day} · ${t.category_id || 'Geral'}</div></div>
+                        <div class="row-info"><div class="row-name">${t.description}</div><div class="row-meta">Vence dia ${t.day} · 
+                            <select class="cat-sel" onchange="updateTransactionCategory('${t.id}', this.value)">
+                                ${CATS.map(cat => `<option value="${cat.n}" ${t.category_id === cat.n ? 'selected' : ''}>${cat.e} ${cat.n}</option>`).join('')}
+                            </select>
+                        </div></div>
                         <div class="exp-val">${fmt(t.value)}</div>
                         <div class="ha">
                             <button class="icon-btn ib-del" onclick="deleteTransaction('${t.id}')">🗑</button>
@@ -559,18 +568,47 @@
         }
 
         function renderCartoes() {
-            document.getElementById('cards-list').innerHTML = `<div class="sg sg-2">${S.cards.map(c => `
-                <div class="cc" style="background:${c.color}">
-                    <div><div class="cc-chip"></div><div class="cc-num">•••• •••• •••• ${c.digits || '****'}</div></div>
-                    <div style="display:flex; justify-content:space-between; align-items:flex-end">
-                        <div><div style="font-size:11px; font-weight:800">${c.name}</div><div style="font-size:9px; opacity:.7">LIMITE: ${fmt(c.limit_val)}</div></div>
-                        <div style="text-align:right">
-                            <button class="btn btn-sm" style="background:rgba(255,255,255,0.15); color:white; margin-right:5px" onclick="triggerImport('${c.id}')">📂 Importar CSV</button>
-                            <button class="icon-btn" style="background:rgba(255,255,255,0.1); color:white" onclick="deleteCard('${c.id}')">🗑</button>
+            const nubankImg = 'cartao-nubank.png';
+            
+            document.getElementById('cards-list').innerHTML = `<div class="sg sg-2">${S.cards.map(c => {
+                const isNubank = c.name.toLowerCase().includes('nubank');
+                const bankColor = isNubank ? '#8505B8' : (c.color || '#4A90E2');
+                
+                // Estilo base: Cor do banco sempre presente como base e fallback
+                const bgStyle = isNubank 
+                    ? `background: ${bankColor} url('${nubankImg}') no-repeat center; background-size: cover;` 
+                    : `background: ${bankColor};`;
+                
+                // Sobreposição que reforça a cor do banco (predomínio)
+                const overlayStyle = `background: linear-gradient(135deg, rgba(0,0,0,0.1) 0%, ${bankColor}99 100%);`;
+
+                return `
+                <div class="cc" style="${bgStyle}">
+                    <div class="cc-overlay" style="${overlayStyle}"></div>
+                    <div class="cc-content">
+                        <div>
+                            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                                <div class="cc-chip"></div>
+                            <div style="display:flex; align-items:center; gap:10px;">
+                                <div style="font-weight:900; font-size:18px; opacity:0.9; font-style:italic;">${isNubank ? 'NUBANK' : (c.bank || 'DIGITAL').toUpperCase()}</div>
+                                <button class="icon-btn" style="width:24px; height:24px; background:rgba(255,255,255,0.2); color:white; border-radius:50%;" title="Ver despesas deste cartão" onclick="showCardExpenses('${c.id}', event)">＋</button>
+                            </div>
+                            </div>
+                            <div class="cc-num">•••• •••• •••• ${c.digits || '****'}</div>
+                        </div>
+                        <div style="display:flex; justify-content:space-between; align-items:flex-end">
+                            <div>
+                                <div style="font-size:12px; font-weight:900; text-transform:uppercase; letter-spacing:1.5px; margin-bottom: 2px;">${c.name}</div>
+                                <div style="font-size:10px; font-weight:700; opacity:0.9">LIMITE: ${fmt(c.limit_val)}</div>
+                            </div>
+                            <div style="text-align:right">
+                                <button class="btn btn-sm" style="background:rgba(255,255,255,0.25); color:white; border:1px solid rgba(255,255,255,0.4); margin-right:5px; backdrop-filter:blur(10px); font-weight:800;" onclick="triggerImport('${c.id}')">📂 Importar CSV</button>
+                                <button class="icon-btn" style="background:rgba(255,255,255,0.2); color:white; border:1px solid rgba(255,255,255,0.25);" onclick="deleteCard('${c.id}')">🗑</button>
+                            </div>
                         </div>
                     </div>
-                </div>
-            `).join('')}</div>
+                </div>`;
+            }).join('')}</div>
             <input type="file" id="csv-input" style="display:none" accept=".csv" onchange="processCSV(this)">
             `;
         }
@@ -800,9 +838,20 @@
                     </div>
                     <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px">
                         <div class="fg"><label class="fl-lbl">Dia</label><input class="fi" id="f-day" type="number" value="${new Date().getDate()}"></div>
-                        <div class="fg"><label class="fl-lbl">Conta</label><select class="fi" id="f-acc">${S.accounts.map(a => `<option value="${a.id}">${a.name}</option>`).join('')}</select></div>
+                        <div class="fg"><label class="fl-lbl">Pagamento em</label>
+                            <select class="fi" id="f-pay-method">
+                                <option value="">--- Selecione ---</option>
+                                <optgroup label="Contas">
+                                    ${S.accounts.map(a => `<option value="acc:${a.id}">${a.name}</option>`).join('')}
+                                </optgroup>
+                                <optgroup label="Cartões">
+                                    ${S.cards.map(c => `<option value="card:${c.id}">${c.name}</option>`).join('')}
+                                </optgroup>
+                            </select>
+                        </div>
                     </div>
                 `;
+                btn.style.display = 'block';
                 btn.onclick = () => saveTransaction(type);
             } else if (type === 'account') {
                 document.getElementById('modal-title').innerText = 'Nova Conta';
@@ -811,6 +860,7 @@
                     <div class="fg"><label class="fl-lbl">Banco</label><input class="fi" id="f-bank" placeholder="Ex: Nu Pagamentos"></div>
                     <div class="fg"><label class="fl-lbl">Saldo Inicial</label><input class="fi fi-lg" id="f-balance" type="number" step="0.01" value="0"></div>
                 `;
+                btn.style.display = 'block';
                 btn.onclick = saveAccount;
             } else if (type === 'card') {
                 document.getElementById('modal-title').innerText = 'Novo Cartão';
@@ -819,6 +869,7 @@
                     <div class="fg"><label class="fl-lbl">4 Últimos Dígitos</label><input class="fi" id="f-digits" maxlength="4"></div>
                     <div class="fg"><label class="fl-lbl">Limite total</label><input class="fi fi-lg" id="f-limit" type="number"></div>
                 `;
+                btn.style.display = 'block';
                 btn.onclick = saveCard;
             }
         }
@@ -829,9 +880,12 @@
             const desc = document.getElementById('f-desc').value;
             const val = document.getElementById('f-val').value;
             const day = document.getElementById('f-day').value;
-            const acc = document.getElementById('f-acc').value;
+            const payMethod = document.getElementById('f-pay-method').value;
             const cat = document.getElementById('f-cat').value;
             
+            const isCard = payMethod.startsWith('card:');
+            const targetId = payMethod.split(':')[1];
+
             await sb.from('transactions').insert({
                 description: desc,
                 value: val,
@@ -840,11 +894,46 @@
                 day: day,
                 month: curMonth,
                 year: curYear,
-                account_id: acc,
+                account_id: isCard ? null : targetId,
+                card_id: isCard ? targetId : null,
                 user_id: S.user.id,
                 date: new Date(curYear, curMonth, day).toISOString().split('T')[0]
             });
             closeModal(); await syncAll();
+        }
+
+        async function updateTransactionCategory(id, newCat) {
+            await sb.from('transactions').update({ category_id: newCat }).eq('id', id);
+            await syncAll();
+        }
+
+        function showCardExpenses(cardId, event) {
+            if(event) event.stopPropagation();
+            const card = S.cards.find(c => c.id === cardId);
+            const list = S.transactions.filter(t => t.card_id === cardId && t.month === curMonth && t.year === curYear);
+            
+            const modal = document.getElementById('modal');
+            const body = document.getElementById('modal-body');
+            modal.classList.add('open');
+            document.getElementById('modal-title').innerText = `Despesas: ${card.name}`;
+            
+            body.innerHTML = list.length 
+                ? list.map(t => `
+                    <div class="row">
+                        <div class="row-ico">${getCatEmoji(t.category_id)}</div>
+                        <div class="row-info">
+                            <div class="row-name">${t.description}</div>
+                            <div class="row-meta">Dia ${t.day} · 
+                                <select class="cat-sel" onchange="updateTransactionCategory('${t.id}', this.value)">
+                                    ${CATS.map(cat => `<option value="${cat.n}" ${t.category_id === cat.n ? 'selected' : ''}>${cat.e} ${cat.n}</option>`).join('')}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row-val rv-r">${fmt(t.value)}</div>
+                    </div>`).join('')
+                : '<div class="section-empty">Nenhuma despesa este mês.</div>';
+            
+            document.getElementById('btn-save').style.display = 'none';
         }
 
         async function saveAccount() {
