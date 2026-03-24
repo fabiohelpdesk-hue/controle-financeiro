@@ -652,7 +652,8 @@
                             </div>
                             <div style="text-align:right">
                                 <button class="btn btn-sm" style="background:rgba(255,255,255,0.25); color:white; border:1px solid rgba(255,255,255,0.4); margin-right:5px; backdrop-filter:blur(10px); font-weight:800;" onclick="triggerImport('${c.id}')">📂 Importar CSV</button>
-                                <button class="icon-btn" style="background:rgba(255,255,255,0.2); color:white; border:1px solid rgba(255,255,255,0.25);" onclick="deleteCard('${c.id}')">🗑</button>
+                                <button class="icon-btn" style="background:rgba(255,255,255,0.25); color:white; border:1px solid rgba(255,255,255,0.4); margin-right:5px; backdrop-filter:blur(10px); width:32px; height:32px;" title="Editar Cartão" onclick="openModal('card', '${c.id}')">✏️</button>
+                                <button class="icon-btn" style="background:rgba(255,255,255,0.2); color:white; border:1px solid rgba(255,255,255,0.25); width:32px; height:32px;" title="Excluir Cartão" onclick="deleteCard('${c.id}')">🗑</button>
                             </div>
                         </div>
                     </div>
@@ -868,7 +869,7 @@
 
         // --- MODALS ---
 
-        function openModal(type) {
+        function openModal(type, dataId = null) {
             const modal = document.getElementById('modal');
             const body = document.getElementById('modal-body');
             const btn = document.getElementById('btn-save');
@@ -912,17 +913,18 @@
                 btn.style.display = 'block';
                 btn.onclick = saveAccount;
             } else if (type === 'card') {
-                document.getElementById('modal-title').innerText = 'Novo Cartão';
+                const card = dataId ? S.cards.find(c => c.id === dataId) : null;
+                document.getElementById('modal-title').innerText = card ? 'Editar Cartão' : 'Novo Cartão';
                 body.innerHTML = `
-                    <div class="fg"><label class="fl-lbl">Nome do Cartão</label><input class="fi" id="f-name" placeholder="Ex: Meu Roxinho"></div>
-                    <div class="fg"><label class="fl-lbl">4 Últimos Dígitos</label><input class="fi" id="f-digits" maxlength="4"></div>
+                    <div class="fg"><label class="fl-lbl">Nome do Cartão</label><input class="fi" id="f-name" value="${card?card.name:''}" placeholder="Ex: Meu Roxinho"></div>
+                    <div class="fg"><label class="fl-lbl">4 Últimos Dígitos</label><input class="fi" id="f-digits" value="${card?card.digits:''}" maxlength="4"></div>
                     <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px">
-                        <div class="fg"><label class="fl-lbl">Limite total</label><input class="fi" id="f-limit" type="number"></div>
-                        <div class="fg"><label class="fl-lbl">Vencimento (Dia)</label><input class="fi" id="f-due" type="number" min="1" max="31"></div>
+                        <div class="fg"><label class="fl-lbl">Limite total</label><input class="fi" id="f-limit" type="number" value="${card?card.limit_val:''}"></div>
+                        <div class="fg"><label class="fl-lbl">Vencimento (Dia)</label><input class="fi" id="f-due" type="number" min="1" max="31" value="${card?card.due_day:''}"></div>
                     </div>
                 `;
                 btn.style.display = 'block';
-                btn.onclick = saveCard;
+                btn.onclick = () => saveCard(dataId);
             }
         }
 
@@ -1013,18 +1015,24 @@
             closeModal(); await syncAll();
         }
 
-        async function saveCard() {
+        async function saveCard(id = null) {
             const name = document.getElementById('f-name').value;
             const digits = document.getElementById('f-digits').value;
             const limit = document.getElementById('f-limit').value;
             const dueDay = document.getElementById('f-due').value;
             
-            await sb.from('cards').insert({
+            const payload = {
                 name, digits, limit_val: limit, 
                 due_day: dueDay,
-                user_id: S.user.id,
-                color: COLORS[Math.floor(Math.random()*COLORS.length)]
-            });
+                user_id: S.user.id
+            };
+
+            if (id) {
+                await sb.from('cards').update(payload).eq('id', id);
+            } else {
+                payload.color = COLORS[Math.floor(Math.random()*COLORS.length)];
+                await sb.from('cards').insert(payload);
+            }
             closeModal(); await syncAll();
         }
 
