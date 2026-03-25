@@ -668,7 +668,7 @@
                             <div style="display:flex; justify-content:space-between; align-items:flex-start;">
                                 <div class="cc-chip"></div>
                             <div style="display:flex; align-items:center; gap:10px;">
-                                <div style="font-weight:900; font-size:18px; opacity:0.9; font-style:italic;">${isNubank ? 'NUBANK' : (isInter ? 'INTER' : (isSams ? 'SAMS CLUB' : (c.bank || 'DIGITAL').toUpperCase()))}</div>
+                                <div style="font-weight:900; font-size:18px; opacity:0.9; font-style:italic;">${isNubank ? 'NUBANK' : (isInter ? 'INTER' : (isSams ? 'SAMS CLUB' : c.name.split(' ')[0].toUpperCase()))}</div>
                                 <button class="icon-btn" style="width:24px; height:24px; background:rgba(255,255,255,0.2); color:white; border-radius:50%;" title="Ver despesas deste cartão" onclick="showCardExpenses('${c.id}', event)">＋</button>
                             </div>
                             </div>
