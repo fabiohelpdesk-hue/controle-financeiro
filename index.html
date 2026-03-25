@@ -919,8 +919,9 @@
                             ${CATS.map(c => `<option value="${c.n}">${c.e} ${c.n}</option>`).join('')}
                         </select>
                     </div>
-                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px">
+                    <div style="display:grid; grid-template-columns:1fr 1fr 2fr; gap:10px">
                         <div class="fg"><label class="fl-lbl">Dia</label><input class="fi" id="f-day" type="number" value="${new Date().getDate()}"></div>
+                        <div class="fg"><label class="fl-lbl">Parcelas</label><input class="fi" id="f-installments" type="number" min="1" value="1"></div>
                         <div class="fg"><label class="fl-lbl">Pagamento em</label>
                             <select class="fi" id="f-pay-method">
                                 <option value="">--- Selecione ---</option>
@@ -963,26 +964,42 @@
         async function saveTransaction(type) {
             const desc = document.getElementById('f-desc').value;
             const val = document.getElementById('f-val').value;
-            const day = document.getElementById('f-day').value;
+            const day = parseInt(document.getElementById('f-day').value) || 1;
+            const elInstallments = document.getElementById('f-installments');
+            const installments = elInstallments ? (parseInt(elInstallments.value) || 1) : 1;
             const payMethod = document.getElementById('f-pay-method').value;
             const cat = document.getElementById('f-cat').value;
             
             const isCard = payMethod.startsWith('card:');
             const targetId = payMethod.split(':')[1];
 
-            await sb.from('transactions').insert({
-                description: desc,
-                value: val,
-                type: type === 'expense' ? 'despesa' : 'receita',
-                category_id: cat,
-                day: day,
-                month: curMonth,
-                year: curYear,
-                account_id: isCard ? null : targetId,
-                card_id: isCard ? targetId : null,
-                user_id: S.user.id,
-                date: new Date(curYear, curMonth, day).toISOString().split('T')[0]
-            });
+            const txnsToInsert = [];
+            for (let i = 0; i < installments; i++) {
+                let m = curMonth + i;
+                let y = curYear;
+                while (m > 11) {
+                    m -= 12;
+                    y++;
+                }
+
+                const actualDesc = installments > 1 ? `${desc} (${i+1}/${installments})` : desc;
+                
+                txnsToInsert.push({
+                    description: actualDesc,
+                    value: val,
+                    type: type === 'expense' ? 'despesa' : 'receita',
+                    category_id: cat,
+                    day: day,
+                    month: m,
+                    year: y,
+                    account_id: isCard ? null : targetId,
+                    card_id: isCard ? targetId : null,
+                    user_id: S.user.id,
+                    date: new Date(y, m, day).toISOString().split('T')[0]
+                });
+            }
+
+            await sb.from('transactions').insert(txnsToInsert);
             closeModal(); await syncAll();
         }
 
