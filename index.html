@@ -946,10 +946,7 @@
                 body.innerHTML = `
                     <div class="fg"><label class="fl-lbl">Nome do Cartão</label><input class="fi" id="f-name" value="${card?card.name:''}" placeholder="Ex: Meu Roxinho"></div>
                     <div class="fg"><label class="fl-lbl">4 Últimos Dígitos</label><input class="fi" id="f-digits" value="${card?card.digits:''}" maxlength="4"></div>
-                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px">
-                        <div class="fg"><label class="fl-lbl">Limite total</label><input class="fi" id="f-limit" type="number" value="${card?card.limit_val:''}"></div>
-                        <div class="fg"><label class="fl-lbl">Vencimento (Dia)</label><input class="fi" id="f-due" type="number" min="1" max="31" value="${card?card.due_day:''}"></div>
-                    </div>
+                    <div class="fg"><label class="fl-lbl">Vencimento (Dia)</label><input class="fi" id="f-due" type="number" min="1" max="31" value="${card?card.due_day:''}"></div>
                 `;
                 btn.style.display = 'block';
                 btn.onclick = () => saveCard(dataId);
@@ -1047,26 +1044,44 @@
         async function saveCard(id = null) {
             const name = document.getElementById('f-name').value;
             const digits = document.getElementById('f-digits').value;
-            const limit = document.getElementById('f-limit').value;
             const dueDay = document.getElementById('f-due').value;
             
+            const nameLow = name.toLowerCase();
+            let bankName = 'DIGITAL';
+            let bankColor = COLORS[Math.floor(Math.random()*COLORS.length)];
+            
+            if (nameLow.includes('nubank')) {
+                bankColor = '#8505B8';
+                bankName = 'NUBANK';
+            } else if (nameLow.includes('inter')) {
+                bankColor = '#FC6800';
+                bankName = 'INTER';
+            }
+            
             const payload = {
-                name, digits, limit_val: limit, 
+                name, digits, limit_val: 0, 
                 due_day: dueDay,
+                bank: bankName,
                 user_id: S.user.id
             };
 
+            let errorResult = null;
             if (id) {
-                await sb.from('cards').update(payload).eq('id', id);
+                // Ao editar, não forçamos a cor caso o usuário já tenha uma cor (mas podemos atualizar o bank se identificarmos de novo)
+                const { error } = await sb.from('cards').update(payload).eq('id', id);
+                errorResult = error;
             } else {
-                const nameLow = name.toLowerCase();
-                if (nameLow.includes('nubank')) payload.color = '#8505B8';
-                else if (nameLow.includes('inter')) payload.color = '#FC6800';
-                else payload.color = COLORS[Math.floor(Math.random()*COLORS.length)];
-                
-                await sb.from('cards').insert(payload);
+                payload.color = bankColor;
+                const { error } = await sb.from('cards').insert(payload);
+                errorResult = error;
             }
-            closeModal(); await syncAll();
+            
+            if (errorResult) {
+                alert('Erro ao salvar o cartão: ' + errorResult.message);
+            } else {
+                closeModal(); 
+                await syncAll();
+            }
         }
 
         function filterExp(el, f) {
