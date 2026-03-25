@@ -679,7 +679,8 @@
                                 <div style="font-size:10px; font-weight:700; opacity:0.9">VENCIMENTO: DIA ${c.due_day || '--'}</div>
                             </div>
                             <div style="display:flex; gap:6px">
-                                <button class="btn btn-sm" style="background:rgba(255,255,255,0.18); color:white; border:1px solid rgba(255,255,255,0.25); backdrop-filter:blur(10px); font-weight:800;" onclick="triggerImport('${c.id}')">📂 Importar CSV</button>
+                                <button class="btn btn-sm" style="background:rgba(0,214,143,0.3); color:white; border:1px solid rgba(0,214,143,0.5); backdrop-filter:blur(10px); font-weight:800;" title="Adicionar Despesa Manual" onclick="openModal('expense', '${c.id}')">＋ Lançar</button>
+                                <button class="btn btn-sm" style="background:rgba(255,255,255,0.18); color:white; border:1px solid rgba(255,255,255,0.25); backdrop-filter:blur(10px); font-weight:800;" title="Importar arquivo de fatura" onclick="triggerImport('${c.id}')">📂 Importar CSV</button>
                                 <button class="icon-btn" style="background:rgba(255,255,255,0.18); color:white; border:1px solid rgba(255,255,255,0.25); backdrop-filter:blur(10px); width:32px; height:32px;" title="Editar Cartão" onclick="openModal('card', '${c.id}')">✏️</button>
                                 <button class="icon-btn" style="background:rgba(255,10,10,0.3); color:white; border:1px solid rgba(255,255,255,0.2); width:32px; height:32px;" title="Excluir Cartão" onclick="deleteCard('${c.id}')">🗑</button>
                             </div>
@@ -923,7 +924,7 @@
                                     ${S.accounts.map(a => `<option value="acc:${a.id}">${a.name}</option>`).join('')}
                                 </optgroup>
                                 <optgroup label="Cartões">
-                                    ${S.cards.map(c => `<option value="card:${c.id}">${c.name}</option>`).join('')}
+                                    ${S.cards.map(c => `<option value="card:${c.id}" ${c.id===dataId ? 'selected' : ''}>${c.name}</option>`).join('')}
                                 </optgroup>
                             </select>
                         </div>
