@@ -643,10 +643,12 @@
                 const nameLow = c.name.toLowerCase();
                 const isNubank = nameLow.includes('nubank');
                 const isInter = nameLow.includes('inter');
+                const isSams = nameLow.includes('sams') || nameLow.includes("sam's");
                 
                 let bankColor = c.color || '#4A90E2';
                 if (isNubank) bankColor = '#8505B8';
                 else if (isInter) bankColor = '#FC6800';
+                else if (isSams) bankColor = '#1E2548';
                 
                 // Estilo base: Cor do banco sem imagem de fundo
                 const bgStyle = `background: ${bankColor};`;
@@ -666,7 +668,7 @@
                             <div style="display:flex; justify-content:space-between; align-items:flex-start;">
                                 <div class="cc-chip"></div>
                             <div style="display:flex; align-items:center; gap:10px;">
-                                <div style="font-weight:900; font-size:18px; opacity:0.9; font-style:italic;">${isNubank ? 'NUBANK' : (isInter ? 'INTER' : (c.bank || 'DIGITAL').toUpperCase())}</div>
+                                <div style="font-weight:900; font-size:18px; opacity:0.9; font-style:italic;">${isNubank ? 'NUBANK' : (isInter ? 'INTER' : (isSams ? 'SAMS CLUB' : (c.bank || 'DIGITAL').toUpperCase()))}</div>
                                 <button class="icon-btn" style="width:24px; height:24px; background:rgba(255,255,255,0.2); color:white; border-radius:50%;" title="Ver despesas deste cartão" onclick="showCardExpenses('${c.id}', event)">＋</button>
                             </div>
                             </div>
@@ -1054,6 +1056,8 @@
                 bankColor = '#8505B8';
             } else if (nameLow.includes('inter')) {
                 bankColor = '#FC6800';
+            } else if (nameLow.includes('sams') || nameLow.includes("sam's")) {
+                bankColor = '#1E2548';
             }
             
             const payload = {
