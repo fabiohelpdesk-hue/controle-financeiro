@@ -672,16 +672,16 @@
                             </div>
                             <div class="cc-num">•••• •••• •••• ${c.digits || '****'}</div>
                         </div>
-                        <div style="display:flex; justify-content:space-between; align-items:flex-end">
+                        <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-between; align-items: flex-end;">
                             <div>
                                 <div style="font-size:12px; font-weight:900; text-transform:uppercase; letter-spacing:1.5px; margin-bottom: 2px;">${c.name}</div>
                                 <div style="font-size:10px; font-weight:800; color:var(--text); text-shadow:none; background:rgba(255,71,87,0.8); padding:2px 6px; border-radius:4px; display:inline-block; margin-bottom:4px">A PAGAR: ${fmt(valorAPagar)}</div>
                                 <div style="font-size:10px; font-weight:700; opacity:0.9">VENCIMENTO: DIA ${c.due_day || '--'}</div>
                             </div>
-                            <div style="text-align:right">
-                                <button class="btn btn-sm" style="background:rgba(255,255,255,0.25); color:white; border:1px solid rgba(255,255,255,0.4); margin-right:5px; backdrop-filter:blur(10px); font-weight:800;" onclick="triggerImport('${c.id}')">📂 Importar CSV</button>
-                                <button class="icon-btn" style="background:rgba(255,255,255,0.25); color:white; border:1px solid rgba(255,255,255,0.4); margin-right:5px; backdrop-filter:blur(10px); width:32px; height:32px;" title="Editar Cartão" onclick="openModal('card', '${c.id}')">✏️</button>
-                                <button class="icon-btn" style="background:rgba(255,255,255,0.2); color:white; border:1px solid rgba(255,255,255,0.25); width:32px; height:32px;" title="Excluir Cartão" onclick="deleteCard('${c.id}')">🗑</button>
+                            <div style="display:flex; gap:6px">
+                                <button class="btn btn-sm" style="background:rgba(255,255,255,0.18); color:white; border:1px solid rgba(255,255,255,0.25); backdrop-filter:blur(10px); font-weight:800;" onclick="triggerImport('${c.id}')">📂 Importar CSV</button>
+                                <button class="icon-btn" style="background:rgba(255,255,255,0.18); color:white; border:1px solid rgba(255,255,255,0.25); backdrop-filter:blur(10px); width:32px; height:32px;" title="Editar Cartão" onclick="openModal('card', '${c.id}')">✏️</button>
+                                <button class="icon-btn" style="background:rgba(255,10,10,0.3); color:white; border:1px solid rgba(255,255,255,0.2); width:32px; height:32px;" title="Excluir Cartão" onclick="deleteCard('${c.id}')">🗑</button>
                             </div>
                         </div>
                     </div>
