@@ -147,7 +147,7 @@
         .chart-wrap{position:relative;height:210px;}
         .section-empty{text-align:center;padding:36px 20px;color:var(--text3);font-size:13px;}
         
-        /* EXPENSE GROUPING & SELECTION */
+        /* EXPENSE GROUPING */
         .card-group { margin-bottom: 24px; transition: all 0.3s ease; }
         .group-header {
             display: flex; justify-content: space-between; align-items: center; 
@@ -156,7 +156,6 @@
             cursor: pointer; position: relative;
         }
         .group-header:hover { border-color: var(--border2); background: var(--bg3); }
-        .group-controls { display: flex; align-items: center; gap: 12px; }
         .group-title-area { display: flex; align-items: center; gap: 10px; font-weight: 900; font-size: 14px; }
         
         .btn-plus {
@@ -165,28 +164,10 @@
             color: var(--text2); font-weight: 800; transition: all 0.2s;
         }
         .group-header.expanded .btn-plus { transform: rotate(45deg); color: var(--red); }
-        
-        .bulk-chk {
-            width: 18px; height: 18px; border-radius: 4px; border: 2px solid var(--text3);
-            cursor: pointer; display: flex; align-items: center; justify-content: center;
-            transition: all 0.2s;
-        }
-        .bulk-chk.active { background: var(--green); border-color: var(--green); color: var(--bg); }
-        .bulk-chk.active::after { content: '✓'; font-size: 12px; font-weight: 900; }
 
         .group-items { transition: all 0.3s ease; overflow: hidden; }
         .group-items.collapsed { display: none; }
         
-        /* Underline/Highlight effect */
-        .exp-row.selected-for-pay {
-            border-bottom: 2px solid var(--green);
-            background: rgba(0, 214, 143, 0.05);
-        }
-        .exp-row.selected-for-pay .row-name {
-            text-decoration: underline;
-            color: var(--green);
-        }
-
         @media(max-width:800px){
             .sidebar{width:58px;padding:14px 8px;}.sidebar .logo-text,.sidebar .logo-sub,.sidebar .nav-sec,.sidebar .ni span:not(.ic),.sidebar .ni-badge,.sidebar .user-name,.sidebar .user-plan{display:none;}.sidebar .ni{justify-content:center;padding:10px;}.main{margin-left:58px;padding:16px;}
         }
@@ -388,8 +369,7 @@
             transactions: [], 
             accounts: [], 
             cards: [],
-            collapsedGroups: {},
-            selectedGroups: {}
+            collapsedGroups: {}
         };
 
         const fmt = v => 'R$ ' + parseFloat(v||0).toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
@@ -584,13 +564,11 @@
                 const total = txns.reduce((s,t) => s + parseFloat(t.value), 0);
                 const isAllPaid = txns.every(t => t.paid);
                 const isCollapsed = S.collapsedGroups[gid];
-                const isSelected = S.selectedGroups[gid];
 
                 html += `
                     <div class="card-group">
                         <div class="group-header ${!isCollapsed ? 'expanded' : ''}" onclick="toggleGroupCollapse('${gid}')">
                             <div class="group-title-area">
-                                <div class="bulk-chk ${isSelected ? 'active' : ''}" title="Selecionar tudo" onclick="toggleGroupSelection('${gid}', event)"></div>
                                 <div class="btn-plus">＋</div>
                                 <span>${card?'💳 ':'📋 '}${title}</span>
                             </div>
@@ -601,7 +579,7 @@
                         </div>
                         <div class="group-items ${isCollapsed ? 'collapsed' : ''}" id="group-${gid}">
                             ${txns.map(t => `
-                                <div class="exp-row ${t.paid?'paid-row':''} ${isSelected ? 'selected-for-pay' : ''}">
+                                <div class="exp-row ${t.paid?'paid-row':''}">
                                     <div class="chk ${t.paid?'paid':(isPast(t)?'ov':'')}" onclick="togglePaid('${t.id}', ${!t.paid})">${t.paid?'✓':''}</div>
                                     <div class="row-ico" style="background:none; border:none; width:auto; font-size:18px">${getCatEmoji(t.category_id)}</div>
                                     <div class="row-info">
@@ -627,12 +605,6 @@
 
         function toggleGroupCollapse(gid) {
             S.collapsedGroups[gid] = !S.collapsedGroups[gid];
-            renderDespesas();
-        }
-
-        function toggleGroupSelection(gid, event) {
-            if(event) event.stopPropagation();
-            S.selectedGroups[gid] = !S.selectedGroups[gid];
             renderDespesas();
         }
 
@@ -900,14 +872,6 @@
         // --- ACTIONS ---
 
         async function togglePaid(id, val) {
-            // Se desmarcar manualmente, removemos a seleção de "tudo" do grupo correspondente
-            if (!val) {
-                const txn = S.transactions.find(t => t.id === id);
-                if (txn) {
-                    const gid = txn.card_id || 'null';
-                    S.selectedGroups[gid] = false;
-                }
-            }
             await sb.from('transactions').update({ paid: val, paid_date: val ? new Date() : null }).eq('id', id);
             await syncAll();
         }
