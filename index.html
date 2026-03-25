@@ -745,19 +745,66 @@
                     }
 
                     const d = new Date(dateStr + 'T12:00:00'); // Use noon to avoid TZ issues
-                    imports.push({
-                        description: title,
-                        value: amount,
-                        type: 'despesa',
-                        category_id: category,
-                        day: d.getDate(),
-                        month: d.getMonth(),
-                        year: d.getFullYear(),
-                        card_id: importTargetId,
-                        user_id: S.user.id,
-                        date: dateStr,
-                        paid: true
-                    });
+                    const baseDate = dateStr;
+
+                    // 1. Evitar Duplicatas: ignora se a transação exata desta linha já existe no banco
+                    const exists = S.transactions.some(tx => tx.card_id === importTargetId && tx.description === title && tx.date === baseDate);
+                    if (exists) continue;
+
+                    // Detecção de Parcelas no Nome. Ex: "Compra Mercado 01/05" ou "1/3"
+                    const match = title.match(/(.*?)\s+(\d+)\/(\d+)$/);
+                    
+                    if (match) {
+                        const baseDesc = match[1];
+                        const curInstLength = match[2].length;
+                        let currentInst = parseInt(match[2], 10);
+                        const totalInst = parseInt(match[3], 10);
+
+                        for (let j = 0; j <= (totalInst - currentInst); j++) {
+                            let m = d.getMonth() + j;
+                            let y = d.getFullYear();
+                            while(m > 11) { m -= 12; y++; }
+                            
+                            let instStr = String(currentInst + j).padStart(curInstLength, '0');
+                            let genDesc = `${baseDesc} ${instStr}/${match[3]}`;
+                            
+                            let genDate = j === 0 ? baseDate : new Date(y, m, d.getDate()).toISOString().split('T')[0];
+                            
+                            // Verificar se essa parcela do futuro projetada também já existe para não sobrepor se o usuário importa denovo
+                            const futureExists = S.transactions.some(tx => tx.card_id === importTargetId && tx.description === genDesc && tx.month === m && tx.year === y);
+                            
+                            if (!futureExists) {
+                                imports.push({
+                                    description: genDesc,
+                                    value: amount,
+                                    type: 'despesa',
+                                    category_id: category,
+                                    day: d.getDate(),
+                                    month: m,
+                                    year: y,
+                                    card_id: importTargetId,
+                                    user_id: S.user.id,
+                                    date: genDate,
+                                    paid: j === 0 // Considerar pago caso seja o mês importado inicial? (Apenas pra manter compatibilidade)
+                                });
+                            }
+                        }
+                    } else {
+                        // Despesa em cota única sem fragmentação
+                        imports.push({
+                            description: title,
+                            value: amount,
+                            type: 'despesa',
+                            category_id: category,
+                            day: d.getDate(),
+                            month: d.getMonth(),
+                            year: d.getFullYear(),
+                            card_id: importTargetId,
+                            user_id: S.user.id,
+                            date: baseDate,
+                            paid: true
+                        });
+                    }
                 }
 
                 if(imports.length > 0) {
